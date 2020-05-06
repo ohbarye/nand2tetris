@@ -3,6 +3,5 @@
 ## Usage
 
 ```shell
-$ ocaml main.ml target.asm
+$ ocamlbuild -package batteries main.native && ./main.native ../add/Add.asm Add.hack
 ```
-
