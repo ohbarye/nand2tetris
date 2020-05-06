@@ -13,7 +13,6 @@ let assemble infilename outfilename =
   while Parser.has_more_commands p do
     match Parser.command_type p with
       | C_COMMAND ->
-        print_endline "C instruction";
         print_endline p.current_line;
         Parser.advance p;
       | A_COMMAND ->

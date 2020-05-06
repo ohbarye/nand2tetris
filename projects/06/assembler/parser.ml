@@ -21,11 +21,23 @@ end = struct
       | '@' -> A_COMMAND
       | _ -> C_COMMAND
 
-  let advance p =
+  let trim str =
+    if Batteries.String.exists str "//" then
+      Batteries.String.split str "//"
+        |> fst
+        |> Batteries.String.trim
+    else
+      Batteries.String.trim str
+
+  let rec advance p =
     if not (has_more_commands p) then raise (NoMoreCommands "No more commands")
     else
       try
-        p.current_line <- input_line p.file;
+        let s = trim (input_line p.file) in
+        if Batteries.String.is_empty s then
+          advance p
+        else
+          p.current_line <- s
       with End_of_file ->
         p.has_next <- false;;
 
