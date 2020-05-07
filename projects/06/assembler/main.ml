@@ -13,6 +13,13 @@ let assemble infilename outfilename =
   let p = Parser.create infile in
 
   while Parser.has_more_commands p do
+    Parser.advance p;
+  done;
+
+  seek_in infile 0;
+  let p = Parser.create infile in
+
+  while Parser.has_more_commands p do
     match Parser.command_type p with
       | C_COMMAND ->
         let comp = Code.comp (Parser.comp p) in
