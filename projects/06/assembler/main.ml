@@ -1,4 +1,5 @@
 open Parser
+open Code
 
 let zfill width s =
   let to_fill = width - (String.length s) in
@@ -13,8 +14,10 @@ let assemble infilename outfilename =
   while Parser.has_more_commands p do
     match Parser.command_type p with
       | C_COMMAND ->
-        p.current_line
-          |> Printf.fprintf outfile "1%s\n";
+        let comp = Code.comp (Parser.comp p) in
+        let dest = Code.dest (Parser.dest p) in
+        let jump = Code.jump (Parser.jump p) in
+        Printf.fprintf outfile "111%s%s%s\n" comp dest jump;
         Parser.advance p;
       | A_COMMAND ->
         Batteries.String.tail p.current_line 1

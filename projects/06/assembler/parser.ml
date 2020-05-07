@@ -13,6 +13,9 @@ module Parser : sig
   val has_more_commands : parser -> bool
   val advance : parser -> unit
   val command_type : parser -> command
+  val comp : parser -> string
+  val dest : parser -> string option
+  val jump : parser -> string option
 end = struct
   let has_more_commands p = p.has_next
 
@@ -47,22 +50,27 @@ end = struct
     p
 
   let dest p =
-    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "dest is only for C instruction")
+    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "dest is only for C instruction");
+    if Batteries.String.exists p.current_line "=" then
+      Some (Batteries.String.split p.current_line "=" |> fst)
     else
-      (* TODO *)
-      "M"
+      None
 
   let comp p =
-    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "dest is only for C instruction")
+    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "comp is only for C instruction");
+    if Batteries.String.exists p.current_line "=" then
+      Batteries.String.split p.current_line "=" |> snd
+    else if Batteries.String.exists p.current_line ";" then
+      Batteries.String.split p.current_line ";" |> fst
     else
-      (* TODO *)
-      "M"
+      raise (UnhandledOperation "command doesn't comply the format")
 
   let jump p =
-    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "dest is only for C instruction")
+    if (command_type p) <> C_COMMAND then raise (UnhandledOperation "jump is only for C instruction");
+    if Batteries.String.exists p.current_line ";" then
+      Some (Batteries.String.split p.current_line ";" |> snd)
     else
-      (* TODO *)
-      "M"
+      None
 
   (* val symbol : string option -> string *)
 end
