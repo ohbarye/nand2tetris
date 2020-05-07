@@ -1,5 +1,6 @@
 open Parser
 open Code
+open SymbolTable
 
 let zfill width s =
   let to_fill = width - (String.length s) in
