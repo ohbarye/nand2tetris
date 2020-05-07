@@ -3,7 +3,7 @@ type parser = {
    mutable has_next : bool;
    mutable current_line : string;
 }
-type command = A_COMMAND | C_COMMAND
+type command = A_COMMAND | C_COMMAND | L_COMMAND
 
 exception NoMoreCommands of string
 exception UnhandledOperation of string
@@ -22,6 +22,7 @@ end = struct
   let command_type p =
     match String.get p.current_line 0 with
       | '@' -> A_COMMAND
+      | '(' -> L_COMMAND
       | _ -> C_COMMAND
 
   let trim str =

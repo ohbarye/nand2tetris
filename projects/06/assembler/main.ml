@@ -10,9 +10,12 @@ let zfill width s =
 let assemble infilename outfilename =
   let infile = open_in infilename in
   let outfile = open_out outfilename in
+  let table = ref (SymbolTable.create ()) in
   let p = Parser.create infile in
 
   while Parser.has_more_commands p do
+    if (Parser.command_type p) = L_COMMAND then
+      table := SymbolTable.add_entity "ZZZZZZZZZZZ" 30 (!table);
     Parser.advance p;
   done;
 
@@ -34,7 +37,10 @@ let assemble infilename outfilename =
           |> zfill 15
           |> Printf.fprintf outfile "0%s\n";
         Parser.advance p;
+      | L_COMMAND ->
+        ()
   done;
+
   close_in infile;
   close_out outfile;;
 
