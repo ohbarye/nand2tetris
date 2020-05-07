@@ -16,6 +16,7 @@ module Parser : sig
   val comp : parser -> string
   val dest : parser -> string option
   val jump : parser -> string option
+  val symbol : parser -> string
 end = struct
   let has_more_commands p = p.has_next
 
@@ -73,5 +74,12 @@ end = struct
     else
       None
 
-  (* val symbol : string option -> string *)
+  let symbol p =
+    match command_type p with
+      | A_COMMAND ->
+        Batteries.String.tail p.current_line 1
+      | L_COMMAND ->
+        Batteries.String.strip ?chars: (Some "()") p.current_line
+      | C_COMMAND ->
+        raise (UnhandledOperation "dest is only for C instruction");
 end

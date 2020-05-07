@@ -4,7 +4,7 @@ module SymbolTable : sig
   val create : unit -> int SymbolTableMap.t
   val add_entity : string -> 'a -> 'a SymbolTableMap.t -> 'a SymbolTableMap.t
   val contains : string -> 'a SymbolTableMap.t -> bool
-  val get_address : string -> 'a option SymbolTableMap.t -> 'a option
+  val get_address : string -> 'a SymbolTableMap.t -> 'a
 end = struct
   let add_entity symbol address map =
     SymbolTableMap.add symbol address map
@@ -39,8 +39,5 @@ end = struct
     SymbolTableMap.mem symbol map
 
   let get_address symbol map =
-    try
-      SymbolTableMap.find symbol map
-    with Not_found ->
-      None
+    SymbolTableMap.find symbol map
 end

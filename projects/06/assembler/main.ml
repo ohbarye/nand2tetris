@@ -13,9 +13,13 @@ let assemble infilename outfilename =
   let table = ref (SymbolTable.create ()) in
   let p = Parser.create infile in
 
+  let current_address = ref 0 in
   while Parser.has_more_commands p do
     if (Parser.command_type p) = L_COMMAND then
-      table := SymbolTable.add_entity "ZZZZZZZZZZZ" 30 (!table);
+      let sym = Parser.symbol p in
+      table := SymbolTable.add_entity sym (!current_address) (!table)
+    else
+      current_address := (!current_address) + 1;
     Parser.advance p;
   done;
 
@@ -30,15 +34,19 @@ let assemble infilename outfilename =
         let jump = Code.jump (Parser.jump p) in
         Printf.fprintf outfile "111%s%s%s\n" comp dest jump;
         Parser.advance p;
-      | A_COMMAND ->
-        Batteries.String.tail p.current_line 1
-          |> Batteries.Big_int.of_string
+      | A_COMMAND -> (* @19, @R0 *)
+        let sym = Parser.symbol p in
+        let address = if SymbolTable.contains sym (!table)
+          then SymbolTable.get_address sym (!table)
+          else int_of_string sym in
+        address
+          |> Batteries.Big_int.of_int
           |> Batteries.Big_int.to_string_in_binary
           |> zfill 15
           |> Printf.fprintf outfile "0%s\n";
         Parser.advance p;
       | L_COMMAND ->
-        ()
+        Parser.advance p;
   done;
 
   close_in infile;
