@@ -13,7 +13,8 @@ let assemble infilename outfilename =
   while Parser.has_more_commands p do
     match Parser.command_type p with
       | C_COMMAND ->
-        print_endline p.current_line;
+        p.current_line
+          |> Printf.fprintf outfile "1%s\n";
         Parser.advance p;
       | A_COMMAND ->
         Batteries.String.tail p.current_line 1
