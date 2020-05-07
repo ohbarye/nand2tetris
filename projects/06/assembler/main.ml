@@ -7,13 +7,10 @@ let zfill width s =
   if to_fill <= 0 then s
   else (String.make to_fill '0') ^ s
 
-let assemble infilename outfilename =
-  let infile = open_in infilename in
-  let outfile = open_out outfilename in
-  let table = ref (SymbolTable.create ()) in
+let scan_symbols infile table =
   let p = Parser.create infile in
-
   let current_address = ref 0 in
+
   while Parser.has_more_commands p do
     if (Parser.command_type p) = L_COMMAND then
       let sym = Parser.symbol p in
@@ -21,10 +18,21 @@ let assemble infilename outfilename =
     else
       current_address := (!current_address) + 1;
     Parser.advance p;
-  done;
+  done
 
-  seek_in infile 0;
+let address_of_sym sym table current_address =
+  if Str.string_match (Str.regexp "[0-9]+") sym 0 then
+    int_of_string sym
+  else if SymbolTable.contains sym (!table) then
+    SymbolTable.get_address sym (!table)
+  else (
+    table := SymbolTable.add_entity sym (!current_address) (!table);
+    current_address := (!current_address) + 1;
+    SymbolTable.get_address sym (!table))
+
+let write_binary infile outfile table =
   let p = Parser.create infile in
+  let current_address = ref 16 in
 
   while Parser.has_more_commands p do
     match Parser.command_type p with
@@ -34,12 +42,9 @@ let assemble infilename outfilename =
         let jump = Code.jump (Parser.jump p) in
         Printf.fprintf outfile "111%s%s%s\n" comp dest jump;
         Parser.advance p;
-      | A_COMMAND -> (* @19, @R0 *)
+      | A_COMMAND ->
         let sym = Parser.symbol p in
-        let address = if SymbolTable.contains sym (!table)
-          then SymbolTable.get_address sym (!table)
-          else int_of_string sym in
-        address
+        address_of_sym sym table current_address
           |> Batteries.Big_int.of_int
           |> Batteries.Big_int.to_string_in_binary
           |> zfill 15
@@ -47,10 +52,20 @@ let assemble infilename outfilename =
         Parser.advance p;
       | L_COMMAND ->
         Parser.advance p;
-  done;
+  done
+
+let assemble infilename outfilename =
+  let infile = open_in infilename in
+  let table = ref (SymbolTable.create ()) in
+
+  scan_symbols infile table;
+  seek_in infile 0;
+
+  let outfile = open_out outfilename in
+  write_binary infile outfile table;
 
   close_in infile;
-  close_out outfile;;
+  close_out outfile
 
 let main () =
   let infilename = Sys.argv.(1) in
