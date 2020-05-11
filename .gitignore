@@ -1,1 +1,5 @@
-*.dat
+**/*.dat
+**/_build/*
+projects/07/**/*.asm
+*.hack
+*.native
