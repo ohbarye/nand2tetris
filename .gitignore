@@ -3,3 +3,4 @@
 projects/07/**/*.asm
 *.hack
 *.native
+*.out
