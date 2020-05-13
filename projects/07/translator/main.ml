@@ -7,7 +7,7 @@ let write_command w p =
   let command = Parser.command_type p in
   match command with
       C_ARITHMETIC ->
-        CodeWriter.write_arithmetic (p.current_line) w
+        CodeWriter.write_arithmetic (Parser.arithmetic_command_type p) w
     | C_PUSH | C_POP ->
         let segment = Parser.arg1 p in
         let index = int_of_string (Parser.arg2 p) in

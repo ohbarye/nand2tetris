@@ -4,6 +4,7 @@ type parser = {
    mutable current_line : string;
 }
 type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL
+type arithmetic_command = ADD | SUB | AND | OR | EQ | GT | LT | NEG | NOT
 
 exception NoMoreCommands of string
 exception UnhandledOperation of string
@@ -13,14 +14,30 @@ module Parser : sig
   val has_more_commands : parser -> bool
   val advance : parser -> unit
   val command_type : parser -> command
+  val arithmetic_command_type : parser -> arithmetic_command
   val arg1 : parser -> string
   val arg2 : parser -> string
 end = struct
   let has_more_commands p = p.has_next
 
+  let command p =
+    List.nth (Batteries.String.split_on_char ' ' p.current_line) 0
+
+  let arithmetic_command_type p =
+    match command p with
+      | "add" -> ADD
+      | "sub" -> SUB
+      | "neg" -> NEG
+      | "eq"  -> EQ
+      | "gt"  -> GT
+      | "lt"  -> LT
+      | "and" -> AND
+      | "or"  -> OR
+      | "not" -> NOT
+      | _ -> raise (UnhandledOperation "this command is not available yet")
+
   let command_type p =
-    let command = List.nth (Batteries.String.split_on_char ' ' p.current_line) 0 in
-    match command with
+    match command p with
       | "pop" -> C_POP
       | "push" -> C_PUSH
       | "add" | "sub" | "neg" | "eq" | "gt"  | "lt" | "and" | "or" | "not" -> C_ARITHMETIC

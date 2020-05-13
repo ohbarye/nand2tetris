@@ -10,7 +10,7 @@ exception UnhandledOperation of string
 
 module CodeWriter : sig
   val create : string -> writer
-  val write_arithmetic : string -> writer -> unit
+  val write_arithmetic : arithmetic_command -> writer -> unit
   val write_push_pop : command -> string -> int -> writer -> unit
   val close : writer -> unit
 end = struct
@@ -20,23 +20,23 @@ end = struct
 
   (* For `add`, `sub`, `and`, `or`
      2 pops, calculate, and save to stack *)
-  let binary_operation command exp = Printf.sprintf "// %s
+  let binary_operation exp = Printf.sprintf "
 @SP
 AM=M-1
 D=M
 A=A-1
-%s" command exp
+%s" exp
 
   (* For `not`, `neg`
      1 pop, calculate, and save to stack *)
-  let unary_operation command exp = Printf.sprintf "// %s
+  let unary_operation exp = Printf.sprintf "
 @SP
 A=M-1
-%s" command exp
+%s" exp
 
   (* For `eq`, `gt`, `lt`
      2 pops, compare, and save to stack *)
-  let compare_operation command jump_type jump_index = Printf.sprintf "// %s
+  let compare_operation jump_type jump_index = Printf.sprintf "
 @SP
 AM=M-1
 D=M
@@ -53,7 +53,7 @@ M=-1
 @SP
 A=M-1
 M=0
-(CONTINUE%d)" command jump_index jump_type jump_index jump_index jump_index
+(CONTINUE%d)" jump_index jump_type jump_index jump_index jump_index
 
   let static_symbol filename index =
     let name = if Batteries.String.exists filename "/" then
@@ -165,35 +165,43 @@ D=M
 A=M
 M=D" symbol symbol
 
+  let comparison_operator = function
+      EQ -> "JNE"
+    | GT -> "JLE"
+    | LT -> "JGE"
+
+  let binary_operator = function
+      ADD -> "+"
+    | SUB -> "-"
+    | AND -> "&"
+    | OR  -> "|"
+
+  let unary_operator = function
+      NEG -> "-"
+    | NOT -> "!"
+
   let write_arithmetic command w =
     let out = match command with
-      "add" ->
-        binary_operation command "M=M+D"
-    | "sub" ->
-        binary_operation command "M=M-D"
-    | "and" ->
-        binary_operation command "M=M&D"
-    | "or" ->
-        binary_operation command "M=M|D"
-    | "eq" ->
+      ADD | SUB | AND | OR ->
+        binary_operation "M=M" ^ (binary_operator command) ^ "D"
+    | EQ | GT | LT ->
         w.label_index <- w.label_index + 1;
-        compare_operation command "JNE" w.label_index
-    | "gt" ->
-        w.label_index <- w.label_index + 1;
-        compare_operation command "JLE" w.label_index
-    | "lt" ->
-        w.label_index <- w.label_index + 1;
-        compare_operation command "JGE" w.label_index
-    | "neg" -> 
-        unary_operation command "M=-M"
-    | "not" ->
-        unary_operation command "M=!M"
-    | _ -> raise (UnhandledOperation "this method is not for the command type") in
+        compare_operation (comparison_operator command) w.label_index
+    | NEG | NOT ->
+        let operator = match command with NEG -> "-" | NOT -> "!" in
+        unary_operation operator in
     Printf.fprintf w.file "%s\n" out
 
-  let write_push_pop command segment index w =
-    let out = match (command, segment) with
-      (C_PUSH, "constant") ->
+  let symbol_of_segment = function
+      "local" -> "LCL"
+    | "argument" -> "ARG"
+    | "this" -> "THIS"
+    | "that" -> "THAT"
+    | _ -> raise (UnhandledOperation "this method is not for the command type")
+
+  let push_operation segment index w =
+    match segment with
+      "constant" ->
         Printf.sprintf "// push %s %d
 @%d
 D=A
@@ -202,36 +210,35 @@ A=M
 M=D
 @SP
 M=M+1" segment index index
-    | (C_PUSH, "local") ->
-        indirect_push_operation "LCL" index
-    | (C_PUSH, "argument") ->
-        indirect_push_operation "ARG" index
-    | (C_PUSH, "this") ->
-        indirect_push_operation "THIS" index
-    | (C_PUSH, "that") ->
-        indirect_push_operation "THAT" index
-    | (C_PUSH, "temp") ->
+    | "local" | "argument" | "this" | "that" ->
+        indirect_push_operation (symbol_of_segment segment) index
+    | "temp" ->
         indirect_push_operation "R5" (index + 5)
-    | (C_PUSH, "pointer") ->
+    | "pointer" ->
         direct_push_operation index
-    | (C_PUSH, "static") ->
+    | "static" ->
         direct_static_push_operation w.filename index
-    | (C_POP, "local") ->
-        indirect_pop_operation "LCL" index
-    | (C_POP, "argument") ->
-        indirect_pop_operation "ARG" index
-    | (C_POP, "this") ->
-        indirect_pop_operation "THIS" index
-    | (C_POP, "that") ->
-        indirect_pop_operation "THAT" index
-    | (C_POP, "temp") ->
-        indirect_pop_operation "R5" (index + 5)
-    | (C_POP, "pointer") ->
-        direct_pop_operation index
-    | (C_POP, "static") ->
-        direct_static_pop_operation w.filename index
     | _ ->
-        raise (UnhandledOperation "this method is not for the command type") in
+        raise (UnhandledOperation "this method is not for the command type")
+
+  let pop_operation segment index w =
+    match segment with
+        "local" | "argument" | "this" | "that" ->
+          indirect_pop_operation (symbol_of_segment segment) index
+      | "temp" ->
+          indirect_pop_operation "R5" (index + 5)
+      | "pointer" ->
+          direct_pop_operation index
+      | "static" ->
+          direct_static_pop_operation w.filename index
+      | _ ->
+          raise (UnhandledOperation "this method is not for the command type")
+
+  let write_push_pop command segment index w =
+    let out = match command with
+      C_PUSH -> push_operation segment index w
+    | C_POP -> pop_operation segment index w
+    | _ -> raise (UnhandledOperation "this method is not for the command type") in
     Printf.fprintf w.file "%s\n" out
 
   let close w =
