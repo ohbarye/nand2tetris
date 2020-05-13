@@ -10,7 +10,6 @@ exception UnhandledOperation of string
 
 module CodeWriter : sig
   val create : string -> writer
-  val set_file_name : string -> writer -> unit
   val write_arithmetic : string -> writer -> unit
   val write_push_pop : command -> string -> int -> writer -> unit
   val close : writer -> unit
@@ -18,11 +17,6 @@ end = struct
   let create outfilename =
     let output = open_out outfilename in
     { filename = outfilename; file = output; label_index = 0 }
-
-  let set_file_name outfilename w =
-    let output = open_out outfilename in
-    w.filename <- outfilename;
-    w.file <- output;;
 
   (* For `add`, `sub`, `and`, `or`
      2 pops, calculate, and save to stack *)
