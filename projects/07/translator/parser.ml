@@ -3,7 +3,7 @@ type parser = {
    mutable has_next : bool;
    mutable current_line : string;
 }
-type command = C_ARITHMETRIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL
+type command = C_ARITHMETIC | C_PUSH | C_POP | C_LABEL | C_GOTO | C_IF | C_FUNCTION | C_RETURN | C_CALL
 
 exception NoMoreCommands of string
 exception UnhandledOperation of string
@@ -23,7 +23,7 @@ end = struct
     match command with
       | "pop" -> C_POP
       | "push" -> C_PUSH
-      | "add" | "sub" | "neg" | "eq" | "gt"  | "lt" | "and" | "or" | "not" -> C_ARITHMETRIC
+      | "add" | "sub" | "neg" | "eq" | "gt"  | "lt" | "and" | "or" | "not" -> C_ARITHMETIC
       | _ -> raise (UnhandledOperation "this command is not available yet")
 
   let trim str =
@@ -55,7 +55,7 @@ end = struct
   let arg1 p =
     match command_type p with
       C_RETURN -> raise (UnhandledOperation "this method is not for the command type")
-    | C_ARITHMETRIC -> p.current_line
+    | C_ARITHMETIC -> p.current_line
     | _ -> List.nth (Batteries.String.split_on_char ' ' p.current_line) 1
 
   let arg2 p =

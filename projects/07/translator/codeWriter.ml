@@ -8,7 +8,7 @@ type writer = {
 module CodeWriter : sig
   val create : string -> writer
   val set_file_name : string -> writer -> unit
-  val write_arithmetric : string -> writer -> unit
+  val write_arithmetic : string -> writer -> unit
   val write_push_pop : command -> string -> int -> writer -> unit
   val close : writer -> unit
 end = struct
@@ -57,7 +57,7 @@ A=M-1
 M=0
 (CONTINUE%d)" command jump_index jump_type jump_index jump_index jump_index
 
-  let write_arithmetric command w =
+  let write_arithmetic command w =
     let out = match command with
       "add" ->
         binary_operation command "M=M+D"
