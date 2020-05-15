@@ -12,6 +12,9 @@ module CodeWriter : sig
   val create : string -> writer
   val write_arithmetic : arithmetic_command -> writer -> unit
   val write_push_pop : command -> string -> int -> writer -> unit
+  val write_label : string -> writer -> unit
+  val write_goto : string -> writer -> unit
+  val write_if : string -> writer -> unit
   val close : writer -> unit
 end = struct
   let create outfilename =
@@ -240,6 +243,15 @@ M=M+1" segment index index
     | C_POP -> pop_operation segment index w
     | _ -> raise (UnhandledOperation "this method is not for the command type") in
     Printf.fprintf w.file "%s\n" out
+
+  let write_label label w =
+    Printf.fprintf w.file "%s\n" "label"
+
+  let write_goto label w =
+    Printf.fprintf w.file "%s\n" "goto"
+
+  let write_if label w =
+    Printf.fprintf w.file "%s\n" "if"
 
   let close w =
     close_out w.file

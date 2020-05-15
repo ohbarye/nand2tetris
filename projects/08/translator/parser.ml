@@ -34,14 +34,20 @@ end = struct
       | "and" -> AND
       | "or"  -> OR
       | "not" -> NOT
-      | _ -> raise (UnhandledOperation "this command is not available yet")
+      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p))
 
   let command_type p =
     match command p with
       | "pop" -> C_POP
       | "push" -> C_PUSH
       | "add" | "sub" | "neg" | "eq" | "gt"  | "lt" | "and" | "or" | "not" -> C_ARITHMETIC
-      | _ -> raise (UnhandledOperation "this command is not available yet")
+      | "label" -> C_LABEL
+      | "goto" -> C_GOTO
+      | "if-goto" -> C_IF
+      | "function" -> C_FUNCTION
+      | "call" -> C_CALL
+      | "return" -> C_RETURN
+      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p))
 
   let trim str =
     if Batteries.String.exists str "//" then

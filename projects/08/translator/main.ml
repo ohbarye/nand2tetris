@@ -12,6 +12,12 @@ let write_command w p =
         let segment = Parser.arg1 p in
         let index = int_of_string (Parser.arg2 p) in
         CodeWriter.write_push_pop command segment index w
+    | C_LABEL ->
+        CodeWriter.write_label (Parser.arg1 p) w
+    | C_GOTO ->
+        CodeWriter.write_goto (Parser.arg1 p) w
+    | C_IF ->
+        CodeWriter.write_if (Parser.arg1 p) w
     | _ -> ()
 
 let write w p =
