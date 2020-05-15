@@ -245,13 +245,21 @@ M=M+1" segment index index
     Printf.fprintf w.file "%s\n" out
 
   let write_label label w =
-    Printf.fprintf w.file "%s\n" "label"
+    "(" ^ label ^ ")"
+      |> Printf.fprintf w.file "%s\n"
 
   let write_goto label w =
-    Printf.fprintf w.file "%s\n" "goto"
+    "@" ^ label ^ "\n" ^
+    "0;JMP"
+      |> Printf.fprintf w.file "%s\n"
 
-  let write_if label w =
-    Printf.fprintf w.file "%s\n" "if"
+  let write_if label w = Printf.sprintf "// if-goto %s
+@SP
+AM=M-1
+D=M
+@%s
+D;JNE" label label
+      |> Printf.fprintf w.file "%s\n"
 
   let close w =
     close_out w.file

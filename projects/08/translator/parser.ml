@@ -34,7 +34,7 @@ end = struct
       | "and" -> AND
       | "or"  -> OR
       | "not" -> NOT
-      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p))
+      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p)))
 
   let command_type p =
     match command p with
@@ -47,7 +47,7 @@ end = struct
       | "function" -> C_FUNCTION
       | "call" -> C_CALL
       | "return" -> C_RETURN
-      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p))
+      | _ -> raise (UnhandledOperation (Printf.sprintf "this command %s is not available yet" (command p)))
 
   let trim str =
     if Batteries.String.exists str "//" then
