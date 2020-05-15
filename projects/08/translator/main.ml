@@ -18,6 +18,12 @@ let write_command w p =
         CodeWriter.write_goto (Parser.arg1 p) w
     | C_IF ->
         CodeWriter.write_if (Parser.arg1 p) w
+    | C_FUNCTION ->
+        let function_name = Parser.arg1 p in
+        let num_locals = int_of_string (Parser.arg2 p) in
+        CodeWriter.write_function function_name num_locals w
+    | C_RETURN ->
+        CodeWriter.write_return w
     | _ -> ()
 
 let write w p =

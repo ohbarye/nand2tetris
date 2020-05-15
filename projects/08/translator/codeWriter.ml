@@ -4,6 +4,7 @@ type writer = {
    mutable filename : string;
    mutable file : out_channel;
    mutable label_index : int;
+   mutable current_function_name : string;
 }
 
 exception UnhandledOperation of string
@@ -15,11 +16,13 @@ module CodeWriter : sig
   val write_label : string -> writer -> unit
   val write_goto : string -> writer -> unit
   val write_if : string -> writer -> unit
+  val write_function : string -> int -> writer -> unit
+  val write_return : writer -> unit
   val close : writer -> unit
 end = struct
   let create outfilename =
     let output = open_out outfilename in
-    { filename = outfilename; file = output; label_index = 0 }
+    { filename = outfilename; file = output; label_index = 0; current_function_name = "" }
 
   (* For `add`, `sub`, `and`, `or`
      2 pops, calculate, and save to stack *)
@@ -192,7 +195,7 @@ M=D" symbol symbol
         compare_operation (comparison_operator command) w.label_index
     | NEG | NOT ->
         let operator = match command with NEG -> "-" | NOT -> "!" in
-        unary_operation operator in
+        unary_operation "M=" ^ operator ^ "M" in
     Printf.fprintf w.file "%s\n" out
 
   let symbol_of_segment = function
@@ -244,21 +247,42 @@ M=M+1" segment index index
     | _ -> raise (UnhandledOperation "this method is not for the command type") in
     Printf.fprintf w.file "%s\n" out
 
+  let full_label label w =
+    if Batteries.String.is_empty w.current_function_name then
+      label
+    else
+      w.current_function_name ^ "$" ^ label
+
   let write_label label w =
-    "(" ^ label ^ ")"
+    "(" ^ (full_label label w) ^ ")"
       |> Printf.fprintf w.file "%s\n"
 
   let write_goto label w =
-    "@" ^ label ^ "\n" ^
+    "@" ^ (full_label label w) ^ "\n" ^
     "0;JMP"
       |> Printf.fprintf w.file "%s\n"
 
-  let write_if label w = Printf.sprintf "// if-goto %s
+  let write_if label w =
+    let fl = full_label label w in
+    Printf.sprintf "// if-goto %s
 @SP
 AM=M-1
 D=M
 @%s
-D;JNE" label label
+D;JNE" fl fl
+      |> Printf.fprintf w.file "%s\n"
+
+  let write_function function_name num_locals w = Printf.sprintf "// function %s
+(%s)
+" function_name function_name
+      |> Printf.fprintf w.file "%s\n";
+    for i = 1 to num_locals do
+      write_push_pop C_PUSH "constant" 0 w;
+    done;
+    w.current_function_name <- function_name
+
+  let write_return w =
+    "return TODO"
       |> Printf.fprintf w.file "%s\n"
 
   let close w =
