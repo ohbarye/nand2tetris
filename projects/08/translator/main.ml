@@ -36,6 +36,7 @@ let write w p =
   done
 
 let translate w infilename =
+  CodeWriter.set_file_name infilename w;
   let p = Parser.create infilename in
   write w p
 

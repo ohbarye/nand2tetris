@@ -13,6 +13,7 @@ exception ArgumentError
 
 module CodeWriter : sig
   val create : string -> writer
+  val set_file_name : string -> writer -> unit
   val write_arithmetic : arithmetic_command -> writer -> unit
   val write_push_pop : command -> string -> int -> writer -> unit
   val write_label : string -> writer -> unit
@@ -110,7 +111,7 @@ M=D
 @SP
 M=M+1" symbol symbol
 
-  (* For `pointer` segments *)
+  (* For `static` segments *)
   let direct_static_push_operation filename index =
     let symbol = static_symbol filename index in
     Printf.sprintf "// push %s
@@ -155,19 +156,14 @@ D=M
 A=M
 M=D" symbol symbol
 
-  (* For `pointer` segments *)
+  (* For `static` segments *)
   let direct_static_pop_operation filename index =
     let symbol = static_symbol filename index in
     Printf.sprintf "// pop %s
-@%s
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@%s
 M=D" symbol symbol
 
   let comparison_operator = function
@@ -394,9 +390,12 @@ M=D
 
   let create outfilename =
     let output = open_out outfilename in
-    let w = { filename = outfilename; file = output; label_index = 0; current_function_name = ""; return_label_num = 0 } in
+    let w = { filename = ""; file = output; label_index = 0; current_function_name = ""; return_label_num = 0 } in
     write_init w;
     w
+
+  let set_file_name vm_filename w =
+    w.filename <- vm_filename
 
   let close w =
     close_out w.file
