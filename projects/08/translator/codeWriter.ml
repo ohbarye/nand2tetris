@@ -281,8 +281,58 @@ D;JNE" fl fl
     done;
     w.current_function_name <- function_name
 
-  let write_return w =
-    "return TODO"
+  let write_return w = Printf.sprintf "// return
+@LCL
+D=M
+@R13
+M=D  // R13 = FRAME = LCL
+@5
+D=A
+@R13
+A=M-D
+D=M  // D = *(FRAME-5) = return-address
+@R14
+M=D  // R14 = return-address
+@SP
+M=M-1
+A=M
+D=M
+@ARG
+A=M  // M = *ARG
+M=D  // *ARG = pop()
+
+@ARG
+D=M+1
+@SP
+M=D  // SP = ARG + 1
+
+@R13
+AM=M-1  // A = FRAME-1, R13 = FRAME-1
+D=M
+@THAT
+M=D  // THAT = *(FRAME-1)
+
+@R13
+AM=M-1
+D=M
+@THIS
+M=D  // THIS = *(FRAME-2)
+
+@R13
+AM=M-1
+D=M
+@ARG
+M=D  // ARG = *(FRAME-3)
+
+@R13
+AM=M-1
+D=M
+@LCL
+M=D  // LCL = *(FRAME-4)
+
+@R14
+A=M
+0;JMP  // goto return-address"
       |> Printf.fprintf w.file "%s\n"
 
   let close w =
