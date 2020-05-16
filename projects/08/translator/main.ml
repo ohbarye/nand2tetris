@@ -32,26 +32,27 @@ let write w p =
     Parser.advance p
   done
 
-let translate infilename =
-  let outfilename = (Batteries.String.rsplit infilename "." |> fst) ^ ".asm" in
-  let w = CodeWriter.create outfilename in
+let translate w infilename =
   let p = Parser.create infilename in
-  write w p;
-  CodeWriter.close w
+  write w p
 
 let filename_list infilename =
   if Batteries.String.exists infilename ".vm" then
-    [infilename]
+    ([infilename], ((Batteries.String.rsplit infilename "." |> fst) ^ ".asm"))
   else if Sys.is_directory infilename then
-    Sys.readdir infilename
+    let infilenames = Sys.readdir infilename
       |> Array.to_list
       |> List.filter (fun name -> Batteries.String.exists name ".vm")
-      |> List.map (fun name -> infilename ^ "/" ^ name)
+      |> List.map (fun name -> infilename ^ "/" ^ name) in
+    (infilenames, infilename ^ "/Main.asm")
   else
     raise (InvalidArgument "Argument is neither file nor directory")
 
 let main () =
-  let infilenames = filename_list Sys.argv.(1) in
-  List.iter translate infilenames;;
+  let (infilenames, outfilename) = filename_list Sys.argv.(1) in
+  let w = CodeWriter.create outfilename in
+  let translate = translate w in
+  List.iter translate infilenames;
+  CodeWriter.close w;;
 
 main ()
