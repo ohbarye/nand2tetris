@@ -24,7 +24,10 @@ let write_command w p =
         CodeWriter.write_function function_name num_locals w
     | C_RETURN ->
         CodeWriter.write_return w
-    | _ -> ()
+    | C_CALL ->
+        let function_name = Parser.arg1 p in
+        let num_args = int_of_string (Parser.arg2 p) in
+        CodeWriter.write_call function_name num_args w
 
 let write w p =
   while Parser.has_more_commands p do
@@ -44,7 +47,8 @@ let filename_list infilename =
       |> Array.to_list
       |> List.filter (fun name -> Batteries.String.exists name ".vm")
       |> List.map (fun name -> infilename ^ "/" ^ name) in
-    (infilenames, infilename ^ "/Main.asm")
+    let filename = (Batteries.String.rsplit infilename "/" |> snd) ^ ".asm" in
+    (infilenames, infilename ^ "/" ^ filename)
   else
     raise (InvalidArgument "Argument is neither file nor directory")
 

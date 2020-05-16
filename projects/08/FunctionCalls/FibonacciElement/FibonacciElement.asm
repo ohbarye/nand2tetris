@@ -1,3 +1,67 @@
+// bootstrap
+@256
+D=A
+@SP
+M=D
+
+// call Sys.init
+@_RETURN_LABEL_1
+D=A
+// push return-address
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+@SP
+D=M
+@5
+D=D-A
+@0
+D=D-A
+@ARG
+M=D  // ARG = SP - n - 5
+@SP
+D=M
+@LCL
+M=D  // LCL = SP
+@Sys.init
+0;JMP  // goto function
+(_RETURN_LABEL_1)
 // function Main.fibonacci
 (Main.fibonacci)
 
@@ -136,6 +200,64 @@ AM=M-1
 D=M
 A=A-1
 M=M-D
+// call Main.fibonacci
+@_RETURN_LABEL_2
+D=A
+// push return-address
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D  // ARG = SP - n - 5
+@SP
+D=M
+@LCL
+M=D  // LCL = SP
+@Main.fibonacci
+0;JMP  // goto function
+(_RETURN_LABEL_2)
 // push ARG 0
 @ARG
 D=M
@@ -161,6 +283,64 @@ AM=M-1
 D=M
 A=A-1
 M=M-D
+// call Main.fibonacci
+@_RETURN_LABEL_3
+D=A
+// push return-address
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D  // ARG = SP - n - 5
+@SP
+D=M
+@LCL
+M=D  // LCL = SP
+@Main.fibonacci
+0;JMP  // goto function
+(_RETURN_LABEL_3)
 
 @SP
 AM=M-1
@@ -230,6 +410,64 @@ A=M
 M=D
 @SP
 M=M+1
+// call Main.fibonacci
+@_RETURN_LABEL_4
+D=A
+// push return-address
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@LCL
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@ARG
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THIS
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+@THAT
+D=M
+
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D  // ARG = SP - n - 5
+@SP
+D=M
+@LCL
+M=D  // LCL = SP
+@Main.fibonacci
+0;JMP  // goto function
+(_RETURN_LABEL_4)
 (Sys.init$WHILE)
 @Sys.init$WHILE
 0;JMP

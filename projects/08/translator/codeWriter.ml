@@ -5,9 +5,11 @@ type writer = {
    mutable file : out_channel;
    mutable label_index : int;
    mutable current_function_name : string;
+   mutable return_label_num : int;
 }
 
 exception UnhandledOperation of string
+exception ArgumentError
 
 module CodeWriter : sig
   val create : string -> writer
@@ -18,12 +20,9 @@ module CodeWriter : sig
   val write_if : string -> writer -> unit
   val write_function : string -> int -> writer -> unit
   val write_return : writer -> unit
+  val write_call : string -> int -> writer -> unit
   val close : writer -> unit
 end = struct
-  let create outfilename =
-    let output = open_out outfilename in
-    { filename = outfilename; file = output; label_index = 0; current_function_name = "" }
-
   (* For `add`, `sub`, `and`, `or`
      2 pops, calculate, and save to stack *)
   let binary_operation exp = Printf.sprintf "
@@ -175,16 +174,19 @@ M=D" symbol symbol
       EQ -> "JNE"
     | GT -> "JLE"
     | LT -> "JGE"
+    | _ -> raise ArgumentError
 
   let binary_operator = function
       ADD -> "+"
     | SUB -> "-"
     | AND -> "&"
     | OR  -> "|"
+    | _ -> raise ArgumentError
 
   let unary_operator = function
       NEG -> "-"
     | NOT -> "!"
+    | _ -> raise ArgumentError
 
   let write_arithmetic command w =
     let out = match command with
@@ -194,8 +196,7 @@ M=D" symbol symbol
         w.label_index <- w.label_index + 1;
         compare_operation (comparison_operator command) w.label_index
     | NEG | NOT ->
-        let operator = match command with NEG -> "-" | NOT -> "!" in
-        unary_operation "M=" ^ operator ^ "M" in
+        unary_operation "M=" ^ (unary_operator command) ^ "M" in
     Printf.fprintf w.file "%s\n" out
 
   let symbol_of_segment = function
@@ -203,7 +204,7 @@ M=D" symbol symbol
     | "argument" -> "ARG"
     | "this" -> "THIS"
     | "that" -> "THAT"
-    | _ -> raise (UnhandledOperation "this method is not for the command type")
+    | _ -> raise ArgumentError
 
   let push_operation segment index w =
     match segment with
@@ -334,6 +335,68 @@ M=D  // LCL = *(FRAME-4)
 A=M
 0;JMP  // goto return-address"
       |> Printf.fprintf w.file "%s\n"
+
+  let push_from_d_register = "
+@SP
+A=M
+M=D
+@SP
+M=M+1"
+
+  let write_call function_name num_args w =
+    w.return_label_num <- w.return_label_num + 1;
+    let return_label = "_RETURN_LABEL_" ^ (string_of_int w.return_label_num) in
+    let d = push_from_d_register in
+    Printf.sprintf "// call %s
+@%s
+D=A
+// push return-address
+%s
+@LCL
+D=M
+%s
+@ARG
+D=M
+%s
+@THIS
+D=M
+%s
+@THAT
+D=M
+%s
+
+@SP
+D=M
+@5
+D=D-A
+@%d
+D=D-A
+@ARG
+M=D  // ARG = SP - n - 5
+@SP
+D=M
+@LCL
+M=D  // LCL = SP
+@%s
+0;JMP  // goto function
+(%s)" function_name return_label d d d d d num_args function_name return_label
+      |> Printf.fprintf w.file "%s\n"
+
+  let write_init w =
+    Printf.sprintf "// bootstrap
+@%d
+D=A
+@SP
+M=D
+" 256
+      |> Printf.fprintf w.file "%s\n";
+    write_call "Sys.init" 0 w
+
+  let create outfilename =
+    let output = open_out outfilename in
+    let w = { filename = outfilename; file = output; label_index = 0; current_function_name = ""; return_label_num = 0 } in
+    write_init w;
+    w
 
   let close w =
     close_out w.file
