@@ -89,20 +89,12 @@ M=D
 @SP
 M=M+1" symbol index symbol index
 
-  (* For `pointer` segments *)
-  let direct_push_operation index =
-    let symbol = match index with
-      0 -> "THIS"
-    | 1 -> "THAT"
-    | _ -> raise (UnhandledOperation "this method is not for the command type") in
+  (* For `pointer`, `temp` segments *)
+  let direct_push_operation symbol =
    Printf.sprintf "// push %s
 @%s
 D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1" symbol symbol
+" symbol symbol ^ push_from_d_register
 
   (* For `static` segments *)
   let direct_static_push_operation filename index =
@@ -131,22 +123,13 @@ D=M
 A=M
 M=D" symbol index symbol index
 
-  (* For `pointer` segments *)
-  let direct_pop_operation index =
-    let symbol = match index with
-        0 -> "THIS"
-      | 1 -> "THAT"
-      | _ -> raise (UnhandledOperation "this method is not for the command type") in
+  (* For `pointer`, `temp` segments *)
+  let direct_pop_operation symbol =
     Printf.sprintf "// pop %s
-@%s
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@%s
 M=D" symbol symbol
 
   (* For `static` segments *)
@@ -201,20 +184,17 @@ M=D" symbol symbol
         Printf.sprintf "// push %s %d
 @%d
 D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1" segment index index
+" segment index index ^ push_from_d_register
     | "local" | "argument" | "this" | "that" ->
         indirect_push_operation (symbol_of_segment segment) index
     | "temp" ->
-Printf.sprintf "// push temp
-@%d
-D=M
-" (index+5) ^ push_from_d_register
+        direct_push_operation (string_of_int (index + 5))
     | "pointer" ->
-        direct_push_operation index
+        let symbol = match index with
+          0 -> "THIS"
+        | 1 -> "THAT"
+        | _ -> raise (UnhandledOperation "this method is not for the command type") in
+        direct_push_operation symbol
     | "static" ->
         direct_static_push_operation w.filename index
     | _ ->
@@ -225,16 +205,13 @@ D=M
         "local" | "argument" | "this" | "that" ->
           indirect_pop_operation (symbol_of_segment segment) index
       | "temp" ->
-       Printf.sprintf "// pop temp
-@SP
-M=M-1
-A=M
-D=M
-@%d
-M=D
-" (index+5)
+          direct_pop_operation (string_of_int (index + 5))
       | "pointer" ->
-          direct_pop_operation index
+          let symbol = match index with
+            0 -> "THIS"
+          | 1 -> "THAT"
+          | _ -> raise (UnhandledOperation "this method is not for the command type") in
+          direct_pop_operation symbol
       | "static" ->
           direct_static_pop_operation w.filename index
       | _ ->

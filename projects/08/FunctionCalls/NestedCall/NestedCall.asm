@@ -68,40 +68,32 @@ M=D  // LCL = SP
 // push constant 4000
 @4000
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THIS
-@THIS
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THIS
 M=D
 // push constant 5000
 @5000
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THAT
-@THAT
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THAT
 M=D
 // call Sys.main
 @_RETURN_LABEL_2
@@ -161,14 +153,12 @@ M=D  // LCL = SP
 @Sys.main
 0;JMP  // goto function
 (_RETURN_LABEL_2)
-// pop temp
+// pop 6
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
 @6
 M=D
-
 (Sys.init$LOOP)
 @Sys.init$LOOP
 0;JMP
@@ -178,6 +168,7 @@ M=D
 // push constant 0
 @0
 D=A
+
 @SP
 A=M
 M=D
@@ -186,6 +177,7 @@ M=M+1
 // push constant 0
 @0
 D=A
+
 @SP
 A=M
 M=D
@@ -194,6 +186,7 @@ M=M+1
 // push constant 0
 @0
 D=A
+
 @SP
 A=M
 M=D
@@ -202,6 +195,7 @@ M=M+1
 // push constant 0
 @0
 D=A
+
 @SP
 A=M
 M=D
@@ -210,6 +204,7 @@ M=M+1
 // push constant 0
 @0
 D=A
+
 @SP
 A=M
 M=D
@@ -218,44 +213,37 @@ M=M+1
 // push constant 4001
 @4001
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THIS
-@THIS
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THIS
 M=D
 // push constant 5001
 @5001
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THAT
-@THAT
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THAT
 M=D
 // push constant 200
 @200
 D=A
+
 @SP
 A=M
 M=D
@@ -277,6 +265,7 @@ M=D
 // push constant 40
 @40
 D=A
+
 @SP
 A=M
 M=D
@@ -298,6 +287,7 @@ M=D
 // push constant 6
 @6
 D=A
+
 @SP
 A=M
 M=D
@@ -319,6 +309,7 @@ M=D
 // push constant 123
 @123
 D=A
+
 @SP
 A=M
 M=D
@@ -382,14 +373,12 @@ M=D  // LCL = SP
 @Sys.add12
 0;JMP  // goto function
 (_RETURN_LABEL_3)
-// pop temp
+// pop 5
 @SP
-M=M-1
-A=M
+AM=M-1
 D=M
 @5
 M=D
-
 // push LCL 0
 @LCL
 D=M
@@ -527,40 +516,32 @@ A=M
 // push constant 4002
 @4002
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THIS
-@THIS
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THIS
 M=D
 // push constant 5002
 @5002
 D=A
+
 @SP
 A=M
 M=D
 @SP
 M=M+1
 // pop THAT
-@THAT
-D=A
-@R13
-M=D
 @SP
 AM=M-1
 D=M
-@R13
-A=M
+@THAT
 M=D
 // push ARG 0
 @ARG
@@ -576,6 +557,7 @@ M=M+1
 // push constant 12
 @12
 D=A
+
 @SP
 A=M
 M=D
