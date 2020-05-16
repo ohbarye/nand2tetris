@@ -24,6 +24,14 @@ module CodeWriter : sig
   val write_call : string -> int -> writer -> unit
   val close : writer -> unit
 end = struct
+
+  let push_from_d_register = "
+@SP
+A=M
+M=D
+@SP
+M=M+1"
+ 
   (* For `add`, `sub`, `and`, `or`
      2 pops, calculate, and save to stack *)
   let binary_operation exp = Printf.sprintf "
@@ -80,21 +88,6 @@ A=M
 M=D
 @SP
 M=M+1" symbol index symbol index
-
-  (* For `pointer` segments *)
-  let direct_push_operation index =
-    let symbol = match index with
-      0 -> "THIS"
-    | 1 -> "THAT"
-    | _ -> raise (UnhandledOperation "this method is not for the command type") in
-   Printf.sprintf "// push %s
-@%s
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1" symbol symbol
 
   (* For `pointer` segments *)
   let direct_push_operation index =
@@ -216,7 +209,10 @@ M=M+1" segment index index
     | "local" | "argument" | "this" | "that" ->
         indirect_push_operation (symbol_of_segment segment) index
     | "temp" ->
-        indirect_push_operation "R5" (index + 5)
+Printf.sprintf "// push temp
+@%d
+D=M
+" (index+5) ^ push_from_d_register
     | "pointer" ->
         direct_push_operation index
     | "static" ->
@@ -229,7 +225,14 @@ M=M+1" segment index index
         "local" | "argument" | "this" | "that" ->
           indirect_pop_operation (symbol_of_segment segment) index
       | "temp" ->
-          indirect_pop_operation "R5" (index + 5)
+       Printf.sprintf "// pop temp
+@SP
+M=M-1
+A=M
+D=M
+@%d
+M=D
+" (index+5)
       | "pointer" ->
           direct_pop_operation index
       | "static" ->
@@ -331,13 +334,6 @@ M=D  // LCL = *(FRAME-4)
 A=M
 0;JMP  // goto return-address"
       |> Printf.fprintf w.file "%s\n"
-
-  let push_from_d_register = "
-@SP
-A=M
-M=D
-@SP
-M=M+1"
 
   let write_call function_name num_args w =
     w.return_label_num <- w.return_label_num + 1;

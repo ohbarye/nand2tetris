@@ -161,19 +161,14 @@ M=D  // LCL = SP
 @Sys.main
 0;JMP  // goto function
 (_RETURN_LABEL_2)
-// pop R5 6
-@R5
+// pop temp
+@SP
+M=M-1
+A=M
 D=M
 @6
-D=D+A
-@R13
 M=D
-@SP
-AM=M-1
-D=M
-@R13
-A=M
-M=D
+
 (Sys.init$LOOP)
 @Sys.init$LOOP
 0;JMP
@@ -387,19 +382,14 @@ M=D  // LCL = SP
 @Sys.add12
 0;JMP  // goto function
 (_RETURN_LABEL_3)
-// pop R5 5
-@R5
+// pop temp
+@SP
+M=M-1
+A=M
 D=M
 @5
-D=D+A
-@R13
 M=D
-@SP
-AM=M-1
-D=M
-@R13
-A=M
-M=D
+
 // push LCL 0
 @LCL
 D=M
