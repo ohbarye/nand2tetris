@@ -1,4 +1,4 @@
-open Lib
+open Nand2tetris_assembler
 
 let zfill width s =
   let to_fill = width - (String.length s) in

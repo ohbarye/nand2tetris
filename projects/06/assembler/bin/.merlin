@@ -5,7 +5,7 @@ B /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam
 B /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam/lib/ocaml
 B /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam/lib/ocaml/threads
 B ../_build/default/bin/.main.eobjs/byte
-B ../_build/default/lib/.lib.objs/byte
+B ../_build/default/lib/.nand2tetris_assembler.objs/byte
 S /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam/lib/batteries
 S /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam/lib/bytes
 S /Users/ohbarye/.ghq/github.com/ohbarye/nand2tetris/projects/06/assembler/_opam/lib/num
