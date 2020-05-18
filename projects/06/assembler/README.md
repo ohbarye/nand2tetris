@@ -3,5 +3,5 @@
 ## Usage
 
 ```shell
-$ ocamlbuild -package batteries main.native && ./main.native ../add/Add.asm ../add/Add.hack
+$ dune exec bin/main.exe  ../max/Max.asm ../max/Max.hack
 ```

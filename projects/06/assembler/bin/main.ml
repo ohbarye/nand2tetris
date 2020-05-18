@@ -1,6 +1,4 @@
-open Parser
-open Code
-open SymbolTable
+open Lib
 
 let zfill width s =
   let to_fill = width - (String.length s) in
@@ -70,6 +68,6 @@ let assemble infilename outfilename =
 let main () =
   let infilename = Sys.argv.(1) in
   let outfilename = Sys.argv.(2) in
-  assemble infilename outfilename;;
+  assemble infilename outfilename
 
-main ()
+let () = main ()
