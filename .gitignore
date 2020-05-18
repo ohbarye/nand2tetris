@@ -1,5 +1,6 @@
 **/*.dat
 **/_build/*
+**/_opam/*
 projects/07/**/*.asm
 *.hack
 *.native

@@ -1,14 +1,13 @@
-open Parser
-open CodeWriter
+open Nand2tetris_translator
 
 exception InvalidArgument of string
 
 let write_command w p =
   let command = Parser.command_type p in
   match command with
-      C_ARITHMETIC ->
+      Parser.C_ARITHMETIC ->
         CodeWriter.write_arithmetic (Parser.arithmetic_command_type p) w
-    | C_PUSH | C_POP ->
+    | Parser.C_PUSH | Parser.C_POP ->
         let segment = Parser.arg1 p in
         let index = int_of_string (Parser.arg2 p) in
         CodeWriter.write_push_pop command segment index w
@@ -21,7 +20,7 @@ let write w p =
   done
 
 let translate infilename =
-  let outfilename = (Batteries.String.rsplit infilename "." |> fst) ^ ".asm" in
+  let outfilename = (Batteries.String.rsplit infilename ~by: "." |> fst) ^ ".asm" in
   let w = CodeWriter.create outfilename in
   let p = Parser.create infilename in
   write w p;
@@ -42,4 +41,4 @@ let main () =
   let infilenames = filename_list Sys.argv.(1) in
   List.iter translate infilenames;;
 
-main ()
+let () = main ()
