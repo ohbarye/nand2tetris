@@ -2,6 +2,10 @@ type tokenizer
 
 val create : string -> tokenizer
 val has_more_tokens : tokenizer -> bool
+val tokenize_line : string -> string list -> string list
+val tokenize_unit : string -> string list -> string list
+val tokenize : string -> string list
+
 (* val advance : tokenizer -> unit *)
 
 (*

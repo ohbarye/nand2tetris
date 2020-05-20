@@ -1,5 +1,5 @@
 let test_suites: unit Alcotest.test list = [
-  (* "Code", Code.tests; *)
+  "JackTokenizer", JackTokenizer.tests;
 ]
 
 let () = Alcotest.run "proj" test_suites
