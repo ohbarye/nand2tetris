@@ -3,7 +3,8 @@ let compile filepath =
   let outfile = (Batteries.String.rsplit filepath ~by: "." |> fst) ^ ".impl.xml" |> open_out in
 
   while JackTokenizer.has_more_tokens tokenizer do
-    JackTokenizer.advance tokenizer
+    print_endline "hey"
+    (* JackTokenizer.advance tokenizer *)
   done;
 
   close_out outfile;

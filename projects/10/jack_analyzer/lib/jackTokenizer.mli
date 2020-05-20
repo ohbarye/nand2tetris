@@ -2,7 +2,7 @@ type tokenizer
 
 val create : string -> tokenizer
 val has_more_tokens : tokenizer -> bool
-val advance : tokenizer -> unit
+(* val advance : tokenizer -> unit *)
 
 (*
 type tokenType = KEYWORD | SYMBOL | IDENTIFIER | INT_CONST | STRING_CONST
