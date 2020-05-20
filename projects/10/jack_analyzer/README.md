@@ -3,7 +3,7 @@
 ### Run script
 
 ```shell
-$ dune exec bin/main.exe
+$ dune exec bin/main.exe ../ArrayTest
 ```
 
 ### Test
