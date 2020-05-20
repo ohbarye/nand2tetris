@@ -1,0 +1,5 @@
+(executable
+ (name run_tests)
+ (libraries
+  alcotest
+  jack_analyzer))
