@@ -35,7 +35,7 @@ let split_without_empty_lines content =
     |> List.map Batteries.String.trim
     |> List.filter (fun x -> not (Batteries.String.is_empty x))
 
-let reg = Str.regexp "[\\{\\}\\(\\)\\[\\.,;\\+\\-\\*\\/&\\|<>=~]\\|\\]"
+let reg = Str.regexp "[-\\{\\}\\(\\)\\[\\.,;\\+\\*\\/&\\|<>=~]\\|\\]"
 
 let rec tokenize_unit unit tokens =
   match unit with
