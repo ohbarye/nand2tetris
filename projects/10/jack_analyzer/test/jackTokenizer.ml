@@ -17,9 +17,11 @@ let test_tokenize_line () =
   check_list "class Main {" ["class"; "Main"; "{"] f;
   check_list "function void main() {" ["function"; "void"; "main"; "("; ")"; "{"] f
 
+let test_whole_tokenize content expected =
+  Alcotest.(check (list string)) "same list" expected (To_test.tokenize content)
+
 let test_tokenize_ArrayTest () =
-  let t content expected = Alcotest.(check (list string)) "same list" expected (To_test.tokenize content) in
-  t {eos|
+  test_whole_tokenize {eos|
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
@@ -61,13 +63,11 @@ class Main {
       |eos} ["class"; "Main"; "{"; "function"; "void"; "main"; "("; ")"; "{"; "var"; "Array"; "a"; ";"; "var"; "int"; "length"; ";"; "var"; "int"; "i"; ","; "sum"; ";"; "let"; "length"; "="; "Keyboard"; "."; "readInt"; "("; "\"HOW MANY NUMBERS? \""; ")"; ";"; "let"; "a"; "="; "Array"; "."; "new"; "("; "length"; ")"; ";"; "let"; "i"; "="; "0"; ";"; "while"; "("; "i"; "<"; "length"; ")"; "{"; "let"; "a"; "["; "i"; "]"; "="; "Keyboard"; "."; "readInt"; "("; "\"ENTER THE NEXT NUMBER: \""; ")"; ";"; "let"; "i"; "="; "i"; "+"; "1"; ";"; "}"; "let"; "i"; "="; "0"; ";"; "let"; "sum"; "="; "0"; ";"; "while"; "("; "i"; "<"; "length"; ")"; "{"; "let"; "sum"; "="; "sum"; "+"; "a"; "["; "i"; "]"; ";"; "let"; "i"; "="; "i"; "+"; "1"; ";"; "}"; "do"; "Output"; "."; "printString"; "("; "\"THE AVERAGE IS: \""; ")"; ";"; "do"; "Output"; "."; "printInt"; "("; "sum"; "/"; "length"; ")"; ";"; "do"; "Output"; "."; "println"; "("; ")"; ";"; "return"; ";"; "}"; "}"; ]
 
   let test_tokenize_ExpressionLessSquare () =
-    let t content expected = Alcotest.(check (list string)) "same list" expected (To_test.tokenize content) in
-    t {eos|
+    test_whole_tokenize {eos|
       |eos} []
 
   let test_tokenize_Square () =
-    let t content expected = Alcotest.(check (list string)) "same list" expected (To_test.tokenize content) in
-    t {eos|
+    test_whole_tokenize {eos|
       |eos} []
 
 
