@@ -13,12 +13,12 @@ let read_whole_file filename =
     close_in ch;
     s
 
-let delete_singleline_comment content =
-  if Batteries.String.exists content "//" then
-    let index_from = Batteries.String.find content "//" in
-    Batteries.String.slice ~first: 0 ~last: index_from content
+let delete_singleline_comment line =
+  if Batteries.String.exists line "//" then
+    let index_from = Batteries.String.find line "//" in
+    Batteries.String.slice ~first: 0 ~last: index_from line
   else
-    content
+    line
 
 let rec delete_multiline_comment content =
   if Batteries.String.exists content "/*" then
@@ -52,12 +52,12 @@ let rec tokenize_unit unit tokens =
         tokenize_unit "" (tokens @ [unit])
 
 let before_double_quote line =
-  if Batteries.String.exists line "\"" && Batteries.String.exists line " " then
+  Batteries.String.exists line "\"" && Batteries.String.exists line " " &&
+    (
       let dq_index = Batteries.String.find line "\"" in
       let space_index = Batteries.String.find line " " in
       dq_index < space_index
-  else
-    false
+    )
 
 let rec tokenize_line line tokens =
   match line with
