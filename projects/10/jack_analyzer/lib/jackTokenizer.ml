@@ -1,7 +1,3 @@
-type tokenizer = {
-  mutable tokens : string list;
-  mutable current_token : string;
-}
 type tokenType = KEYWORD | SYMBOL | IDENTIFIER | INT_CONST | STRING_CONST
 type keywordType = CLASS | CONSTRUCTOR | FUNCTION | METHOD | FIELD | STATIC | VAR | INT | CHAR | BOOLEAN | VOID | TRUE | FALSE | NULL | THIS | LET | DO | IF | ELSE | WHILE | RETURN
 type symbolType = LEFT_CURLY_BRACKET | RIGHT_CURLY_BRACKET | LEFT_ROUND_BRACKET | RIGHT_ROUND_BRACKET | LEFT_SQUARE_BRACKET | RIGHT_SQUARE_BRACKET | PERIOD | COMMA | SEMI_COLON | PLUS_SIGN | HYPHEN | ASTERISK | SLASH | AMPERSAND | VERTICAL_LINE | LESS_THAN_SIGN | GREATER_THAN_SIGN | EQUAL | TILDE
@@ -56,16 +52,10 @@ let symbol_map =
     |> SymbolMap.add "=" EQUAL
     |> SymbolMap.add "~" TILDE
 
-let has_more_tokens tokenizer =
-  match tokenizer.tokens with
-      [] -> true
-    | _ -> false
-
-let advance tokenizer =
-    let tokens = match tokenizer.tokens with
-        [] -> raise ArgumentError
-      | _ :: tail -> tail in
-    tokenizer.tokens <- tokens
+let has_more_tokens tokens =
+  match tokens with
+      [] -> false
+    | _ -> true
 
 let reg = Str.regexp "[-\\{\\}\\(\\)\\[\\.,;\\+\\*\\/&\\|<>=~]\\|\\]"
 
@@ -74,13 +64,13 @@ let int_regex = Str.regexp "^[0-9]+$"
 let identifier_regex = Str.regexp "^[a-zA-Z_][a-zA-Z0-9_]*$"
 let string_regex = Str.regexp "^\"[^\"\n]*\"$"
 
-let current_token tokenizer =
-  match tokenizer.tokens with
+let current_token tokens =
+  match tokens with
       [] -> raise ArgumentError
     | head :: _ -> head
 
-let token_type tokenizer =
-  match current_token tokenizer with
+let token_type tokens =
+  match current_token tokens with
     | s when KeywordMap.mem s keyword_map
       -> KEYWORD
     | s when SymbolMap.mem s symbol_map
@@ -94,20 +84,20 @@ let token_type tokenizer =
     | _
       -> raise ArgumentError
 
-let keyword tokenizer =
-  KeywordMap.find (current_token tokenizer) keyword_map
+let keyword tokens =
+  KeywordMap.find (current_token tokens) keyword_map
 
-let symbol tokenizer =
-  current_token tokenizer
+let symbol tokens =
+  current_token tokens
 
-let identifier tokenizer =
-  current_token tokenizer
+let identifier tokens =
+  current_token tokens
 
-let int_val tokenizer =
-  int_of_string (current_token tokenizer)
+let int_val tokens =
+  int_of_string (current_token tokens)
 
-let string_val tokenizer =
-  current_token tokenizer
+let string_val tokens =
+  current_token tokens
 
 let read_whole_file filename =
   let ch = open_in filename in
@@ -194,7 +184,5 @@ let tokenize content =
   tokenize_all_lines lines []
 
 let create filepath =
-  let tokens = read_whole_file filepath
-    |> tokenize in
-
-  { tokens = tokens ; current_token = ""; }
+  read_whole_file filepath
+    |> tokenize
