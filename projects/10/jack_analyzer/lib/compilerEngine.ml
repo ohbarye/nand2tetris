@@ -20,7 +20,27 @@ let compile_identifier outfile depth tokens =
   List.tl tokens
 
 let compile_symbol outfile depth tokens =
-  write_element "symbol" (List.hd tokens) outfile depth;
+  let symbol = match List.hd tokens with
+    | "<" -> "&lt;"
+    | ">" -> "&lt;"
+    | "&" -> "&amp;"
+    | s -> s in
+  write_element "symbol" symbol outfile depth;
+  List.tl tokens
+
+let compile_integer_const outfile depth tokens =
+  write_element "integerConstant" (List.hd tokens) outfile depth;
+  List.tl tokens
+
+let sanitize_string str =
+  if Batteries.String.starts_with str "\"" then
+    Batteries.String.slice ~first:1 ~last:(-1) str
+  else
+    str
+
+let compile_string_const outfile depth tokens =
+  let sanitized = sanitize_string (List.hd tokens) in
+  write_element "stringConstant" sanitized outfile depth;
   List.tl tokens
 
 let rec _compile outfile depth tokens =
@@ -31,9 +51,11 @@ let rec _compile outfile depth tokens =
       compile_identifier outfile depth tokens
     | SYMBOL ->
       compile_symbol outfile depth tokens
-(*    INT_CONST ->
-    | STRING_CONST -> *)
-    | _ -> raise ArgumentError
+    | INT_CONST ->
+      compile_integer_const outfile depth tokens
+    | STRING_CONST ->
+      compile_string_const outfile depth tokens
+
 and compile_class_var_dec_or_subroutine_dec outfile depth tokens =
   match List.hd tokens with
     | "}" -> tokens
@@ -66,10 +88,116 @@ and compile_subroutine_body_var_dec outfile depth tokens =
         |> compile_subroutine_body_var_dec outfile depth
     | _ -> tokens
 
+and _compile_expression_list outfile depth tokens =
+  match tokens with
+    | _ :: ")" :: _ ->
+      compile_expression outfile depth tokens
+        |> _compile_expression_list outfile depth
+    | _ :: "," :: _ ->
+      _compile outfile depth tokens (* ',' *)
+        |> compile_expression outfile depth
+        |> _compile_expression_list outfile depth
+    | _ ->
+      tokens
+
+and compile_expression_list outfile depth tokens =
+  write_element_start "expressionList" outfile depth;
+  let rest = _compile_expression_list outfile (depth + 1) tokens in
+  write_element_end "expressionList" outfile depth;
+  rest
+
+and compile_subroutine_call outfile depth tokens =
+  match tokens with
+    | _ :: "(" :: _ ->
+      _compile outfile depth tokens (* subroutineName *)
+        |> _compile outfile depth (* '(' *)
+        |> compile_expression_list outfile depth (* expressionList *)
+        |> _compile outfile depth (* ')' *)
+    | _ :: "." :: _ ->
+      _compile outfile depth tokens (* (className|varName) *)
+        |> _compile outfile depth (* '.' *)
+        |> _compile outfile depth (* subroutineName *)
+        |> _compile outfile depth (* '(' *)
+        |> compile_expression_list outfile depth (* expressionList *)
+        |> _compile outfile depth (* ')' *)
+    | _ -> raise (CompileError "Syntax error: subroutine call")
+
+and _compile_term outfile depth tokens =
+  let rest = match JackTokenizer.token_type tokens with
+    | INT_CONST | STRING_CONST ->
+      _compile outfile depth tokens
+    | KEYWORD ->
+        (match List.hd tokens with
+          | "null" | "this" | "true" | "false" ->
+            _compile outfile depth tokens
+          | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
+       )
+    | SYMBOL ->
+      (match List.hd tokens with
+        | "(" ->
+          _compile outfile depth tokens (* '(' *)
+            |> compile_expression outfile depth
+            |> _compile outfile depth (* ')' *)
+        | "-" | "~" ->
+          _compile outfile depth tokens (* unaryOp *)
+            |> _compile_term outfile depth
+        | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
+      )
+    | IDENTIFIER ->
+      (match tokens with
+        | _ :: "[" :: _ ->
+          _compile outfile depth tokens (* varName *)
+            |> _compile outfile depth (* '[' *)
+            |> compile_expression outfile depth (* expression *)
+            |> _compile outfile depth (* ']' *)
+        | _ :: "(" :: _ | _ :: "." :: _ ->
+          compile_subroutine_call outfile depth tokens (* subroutineCall *)
+        | _ ->
+          _compile outfile depth tokens (* varName *)
+      ) in
+  rest
+ 
+and compile_term outfile depth tokens =
+  write_element_start "term" outfile depth;
+  let rest = _compile_term outfile (depth + 1) tokens in
+  write_element_end "term" outfile depth;
+  rest
+
+and compile_expression outfile depth tokens =
+  write_element_start "expression" outfile depth;
+  let rest = compile_term outfile (depth + 1) tokens in
+  write_element_end "expression" outfile depth;
+  rest
+
+and compile_let_statement outfile depth tokens =
+  write_element_start "letStatement" outfile depth;
+  write_element "keyword" "let" outfile (depth + 1); (* 'let' *)
+  let rest = _compile outfile (depth + 1) (List.tl tokens) (* varName *)
+  (* TODO [expression] *)
+    |> _compile outfile (depth + 1) (* '=' *)
+    |> compile_expression outfile (depth + 1) (* expression *)
+    |> _compile outfile (depth + 1) in (* ';' *)
+  write_element_end "letStatement" outfile depth;
+  rest
+
+and compile_statements_repeat outfile depth tokens =
+  match List.hd tokens with
+    | "let" | "if" | "while" | "do" | "return" ->
+      _compile outfile depth tokens
+        |> compile_statements_repeat outfile depth
+    | _ -> tokens
+
+and compile_statements outfile depth tokens =
+  write_element_start "statements" outfile depth;
+  let rest = compile_statements_repeat outfile (depth + 1) tokens in
+  write_element_end "statements" outfile depth;
+  rest
+
 and compile_subroutine_body outfile depth tokens =
   write_element_start "subroutineBody" outfile depth;
   let rest = _compile outfile (depth + 1) tokens (* '{' *)
     |> compile_subroutine_body_var_dec outfile (depth + 1) (* varDec *)
+    |> compile_statements outfile (depth + 1) (* statements* *)
     |> _compile outfile (depth + 1) in (* '}' *)
   write_element_end "subroutineBody" outfile depth;
   rest
@@ -121,6 +249,8 @@ and compile_keyword outfile depth tokens =
       compile_type outfile depth tokens
     | "var" ->
       compile_var_dec outfile depth tokens
+    | "let" ->
+      compile_let_statement outfile depth tokens
     | _ ->
       raise (CompileError (Printf.sprintf "This token is unrecognized: %s" (List.hd tokens)))
 
