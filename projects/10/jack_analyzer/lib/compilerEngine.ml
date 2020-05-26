@@ -36,28 +36,92 @@ let rec _compile tokens outfile depth =
     | _ -> raise ArgumentError
 
 and compile_class tokens outfile depth =
-  let (current, rest) = match tokens with
-      [] -> raise ArgumentError
-    | head :: tail -> (head, tail) in
-  write_element_start current outfile depth;
-  write_element "keyword" current outfile (depth + 1); (* 'class' *)
+  write_element_start "class" outfile depth;
+  write_element "keyword" "class" outfile (depth + 1); (* 'class' *)
+
+  let rest = List.tl tokens in
   let rest = _compile rest outfile (depth + 1) in (* className *)
   let rest = _compile rest outfile (depth + 1) in (* '{' *)
 
   let rest = ref rest in
   while (List.hd !rest) <> "}" do
-    rest := ["}"]
+    rest :=  _compile !rest outfile (depth + 1) (* classVarDec or subroutineDec *)
   done;
   let rest = !rest in
 
   let rest = _compile rest outfile (depth + 1) in (* '}' *)
-  write_element_end current outfile depth;
+  write_element_end "class" outfile depth;
   rest
+
+and compile_parameter_list tokens outfile depth =
+  write_element_start "parameterList" outfile depth;
+  (* TODO *)
+  write_element_end "parameterList" outfile depth;
+  tokens
+
+and compile_subroutine_body tokens outfile depth =
+  write_element_start "subroutineBody" outfile depth;
+  let rest = _compile tokens outfile (depth + 1) in (* '{' *)
+
+  let rest = ref rest in
+  while (List.hd !rest) = "var" do
+    rest :=  _compile !rest outfile (depth + 1) (* varDec *)
+  done;
+  let rest = !rest in
+
+  let rest = _compile rest outfile (depth + 1) in (* '}' *)
+  write_element_end "subroutineBody" outfile depth;
+  rest
+
+and compile_subroutine_dec tokens outfile depth =
+  let (current, rest) = match tokens with
+      [] -> raise ArgumentError
+    | head :: tail -> (head, tail) in
+  write_element_start "subroutineDec" outfile depth;
+  write_element "keyword" current outfile (depth + 1); (* ('constructor'|'function'|'method') *)
+  let rest = _compile rest outfile (depth + 1) in (* ('void'|type) *)
+  let rest = _compile rest outfile (depth + 1) in (* subroutineName *)
+  let rest = _compile rest outfile (depth + 1) in (* '(' *)
+  let rest = compile_parameter_list rest outfile (depth + 1) in (* parameterList *)
+  let rest = _compile rest outfile (depth + 1) in (* ')' *)
+  let rest = compile_subroutine_body rest outfile (depth + 1) in (* subroutineBody *)
+  write_element_end "subroutineDec" outfile depth;
+  rest
+
+and compile_var_dec tokens outfile depth =
+  let (_, rest) = match tokens with
+      [] -> raise ArgumentError
+    | head :: tail -> (head, tail) in
+  write_element_start "varDec" outfile depth;
+  write_element "keyword" "var" outfile (depth + 1); (* 'var' *)
+  let rest = _compile rest outfile (depth + 1) in (* type *)
+  let rest = _compile rest outfile (depth + 1) in (* varName *)
+
+  let rest = ref rest in
+  while (List.hd !rest) <> ";" do
+    rest :=  _compile !rest outfile (depth + 1); (* ',' *)
+    rest :=  _compile !rest outfile (depth + 1) (* varName *)
+  done;
+  let rest = !rest in
+
+  let rest = _compile rest outfile (depth + 1) in (* ';' *)
+  write_element_end "varDec" outfile depth;
+  rest
+
+and compile_type tokens outfile depth =
+  write_element "keyword" (List.hd tokens) outfile depth;
+  List.tl tokens
 
 and compile_keyword tokens outfile depth =
   match List.hd tokens with
     | "class" ->
       compile_class tokens outfile depth
+    | "constructor" | "function" | "method" ->
+      compile_subroutine_dec tokens outfile depth
+    | "void" | "int" | "char" | "boolean" ->
+      compile_type tokens outfile depth
+    | "var" ->
+      compile_var_dec tokens outfile depth
     | _ ->
       raise (CompileError (Printf.sprintf "This token is unrecognized: %s" (List.hd tokens)))
 
