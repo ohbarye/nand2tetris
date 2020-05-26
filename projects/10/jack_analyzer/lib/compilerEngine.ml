@@ -177,9 +177,18 @@ and compile_term outfile depth tokens =
   write_element_end "term" outfile depth;
   rest
 
+and _compile_expression outfile depth tokens =
+  match List.hd tokens with
+    | "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=" ->
+      _compile outfile depth tokens
+        |> compile_term outfile depth
+        |> _compile_expression outfile depth
+    | _ -> tokens
+
 and compile_expression outfile depth tokens =
   write_element_start "expression" outfile depth;
-  let rest = compile_term outfile (depth + 1) tokens in
+  let rest = compile_term outfile (depth + 1) tokens
+    |> _compile_expression outfile (depth + 1) in
   write_element_end "expression" outfile depth;
   rest
 
@@ -192,6 +201,7 @@ and compile_let_statement_index outfile depth tokens =
         |> _compile outfile depth (* ']' *)
     | s ->
       raise (CompileError (Printf.sprintf "Unexpected token is given in let statement: %s" s))
+
 and compile_let_statement outfile depth tokens =
   write_element_start "letStatement" outfile depth;
   write_element "keyword" "let" outfile (depth + 1); (* 'let' *)
@@ -201,6 +211,18 @@ and compile_let_statement outfile depth tokens =
     |> compile_expression outfile (depth + 1) (* expression *)
     |> _compile outfile (depth + 1) in (* ';' *)
   write_element_end "letStatement" outfile depth;
+  rest
+
+and compile_while_statement outfile depth tokens =
+  write_element_start "whileStatement" outfile depth;
+  write_element "keyword" "while" outfile (depth + 1); (* 'while' *)
+  let rest = _compile outfile (depth + 1) (List.tl tokens) (* '(' *)
+    |> compile_expression outfile (depth + 1) (* expression *)
+    |> _compile outfile (depth + 1) (* ')' *)
+    |> _compile outfile (depth + 1) (* '{' *)
+    |> compile_statements outfile (depth + 1) (* statements *)
+    |> _compile outfile (depth + 1) in (* '}' *)
+  write_element_end "whileStatement" outfile depth;
   rest
 
 and compile_statements_repeat outfile depth tokens =
@@ -274,8 +296,8 @@ and compile_keyword outfile depth tokens =
       compile_var_dec outfile depth tokens
     | "let" ->
       compile_let_statement outfile depth tokens
-    (* | "while" ->
-      compile_while_statement outfile depth tokens *)
+    | "while" ->
+      compile_while_statement outfile depth tokens
     (* | "do" ->
       compile_do_statement outfile depth tokens
     | "return" ->
