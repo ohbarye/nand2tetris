@@ -75,11 +75,25 @@ and compile_class outfile depth tokens =
   write_element_end "class" outfile depth;
   rest
 
+and _compile_parameter_list outfile depth tokens =
+  match tokens with
+    | _ :: ")" :: _ ->
+      _compile outfile depth tokens (* type *)
+        |> _compile outfile depth (* varName *)
+        |> _compile_parameter_list outfile depth
+    | _ :: "," :: _ ->
+      _compile outfile depth tokens (* ',' *)
+        |> _compile outfile depth (* type *)
+        |> _compile outfile depth (* varName *)
+        |> _compile_parameter_list outfile depth
+    | _ ->
+      tokens
+
 and compile_parameter_list outfile depth tokens =
   write_element_start "parameterList" outfile depth;
-  (* TODO *)
+  let rest = _compile_expression_list outfile (depth + 1) tokens in
   write_element_end "parameterList" outfile depth;
-  tokens
+  rest
 
 and compile_subroutine_body_var_dec outfile depth tokens =
   match List.hd tokens with
