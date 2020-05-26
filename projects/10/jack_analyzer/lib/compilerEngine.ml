@@ -229,6 +229,20 @@ and compile_while_statement outfile depth tokens =
   write_element_end "whileStatement" outfile depth;
   rest
 
+and _compile_return_statement outfile depth tokens =
+  match List.hd tokens with
+    | ";" -> tokens
+    | _ ->
+      compile_expression outfile depth tokens
+
+and compile_return_statement outfile depth tokens =
+  write_element_start "returnStatement" outfile depth;
+  write_element "keyword" "return" outfile (depth + 1); (* 'return' *)
+  let rest = _compile_return_statement outfile (depth + 1) (List.tl tokens)
+    |> _compile outfile (depth + 1) in (* ';' *)
+  write_element_end "returnStatement" outfile depth;
+  rest
+
 and compile_do_statement outfile depth tokens =
   write_element_start "doStatement" outfile depth;
   write_element "keyword" "do" outfile (depth + 1); (* 'do' *)
@@ -312,8 +326,8 @@ and compile_keyword outfile depth tokens =
       compile_while_statement outfile depth tokens
     | "do" ->
       compile_do_statement outfile depth tokens
-    (* | "return" ->
-      compile_return_statement outfile depth tokens *)
+    | "return" ->
+      compile_return_statement outfile depth tokens
     (* | "if" ->
       compile_if_statement outfile depth tokens *)
     | _ ->
