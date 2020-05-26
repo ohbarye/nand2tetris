@@ -251,6 +251,29 @@ and compile_do_statement outfile depth tokens =
   write_element_end "doStatement" outfile depth;
   rest
 
+and compile_if_statement_else outfile depth tokens =
+  match List.hd tokens with
+    | "else" ->
+      write_element "keyword" "else" outfile depth; (* 'else' *)
+      _compile outfile depth tokens (* '{' *)
+      |> compile_statements outfile depth (* statements *)
+      |> _compile outfile depth (* '}' *)
+    | _ ->
+      tokens
+
+and compile_if_statement outfile depth tokens =
+  write_element_start "ifStatement" outfile depth;
+  write_element "keyword" "if" outfile (depth + 1); (* 'if' *)
+  let rest = _compile outfile (depth + 1) (List.tl tokens) (* '(' *)
+    |> compile_expression outfile (depth + 1) (* expression *)
+    |> _compile outfile (depth + 1) (* ')' *)
+    |> _compile outfile (depth + 1) (* '{' *)
+    |> compile_statements outfile (depth + 1) (* statements *)
+    |> _compile outfile (depth + 1) (* '}' *)
+    |> compile_if_statement_else outfile (depth + 1) in
+  write_element_end "ifStatement" outfile depth;
+  rest
+
 and compile_statements_repeat outfile depth tokens =
   match List.hd tokens with
     | "let" | "if" | "while" | "do" | "return" ->
@@ -328,8 +351,8 @@ and compile_keyword outfile depth tokens =
       compile_do_statement outfile depth tokens
     | "return" ->
       compile_return_statement outfile depth tokens
-    (* | "if" ->
-      compile_if_statement outfile depth tokens *)
+    | "if" ->
+      compile_if_statement outfile depth tokens
     | _ ->
       raise (CompileError (Printf.sprintf "This token is unrecognized: %s" (List.hd tokens)))
 
