@@ -111,8 +111,11 @@ and _compile_expression_list outfile depth tokens =
       _compile outfile depth tokens (* ',' *)
         |> compile_expression outfile depth
         |> _compile_expression_list outfile depth
-    | _ ->
+    | ")" :: _ ->
       tokens
+    | _ ->
+      compile_expression outfile depth tokens
+        |> _compile_expression_list outfile depth
 
 and compile_expression_list outfile depth tokens =
   write_element_start "expressionList" outfile depth;
@@ -134,7 +137,8 @@ and compile_subroutine_call outfile depth tokens =
         |> _compile outfile depth (* '(' *)
         |> compile_expression_list outfile depth (* expressionList *)
         |> _compile outfile depth (* ')' *)
-    | _ -> raise (CompileError "Syntax error: subroutine call")
+    | _ ->
+      raise (CompileError "Syntax error: subroutine call")
 
 and _compile_term outfile depth tokens =
   let rest = match JackTokenizer.token_type tokens with
@@ -225,6 +229,14 @@ and compile_while_statement outfile depth tokens =
   write_element_end "whileStatement" outfile depth;
   rest
 
+and compile_do_statement outfile depth tokens =
+  write_element_start "doStatement" outfile depth;
+  write_element "keyword" "do" outfile (depth + 1); (* 'do' *)
+  let rest = compile_subroutine_call outfile (depth + 1) (List.tl tokens) (* subroutineCall *)
+    |> _compile outfile (depth + 1) in (* ';' *)
+  write_element_end "doStatement" outfile depth;
+  rest
+
 and compile_statements_repeat outfile depth tokens =
   match List.hd tokens with
     | "let" | "if" | "while" | "do" | "return" ->
@@ -298,11 +310,11 @@ and compile_keyword outfile depth tokens =
       compile_let_statement outfile depth tokens
     | "while" ->
       compile_while_statement outfile depth tokens
-    (* | "do" ->
+    | "do" ->
       compile_do_statement outfile depth tokens
-    | "return" ->
-      compile_return_statement outfile depth tokens
-    | "if" ->
+    (* | "return" ->
+      compile_return_statement outfile depth tokens *)
+    (* | "if" ->
       compile_if_statement outfile depth tokens *)
     | _ ->
       raise (CompileError (Printf.sprintf "This token is unrecognized: %s" (List.hd tokens)))
