@@ -56,12 +56,39 @@ let rec _compile outfile depth tokens =
     | STRING_CONST ->
       compile_string_const outfile depth tokens
 
+and compile_class_var_dec_var_name outfile depth tokens =
+  match List.hd tokens with
+    | ";" -> tokens
+    | "," ->
+      _compile outfile depth tokens (* ',' *)
+        |> _compile outfile depth (* varName *)
+    | s ->
+      raise (CompileError (Printf.sprintf "Unknown token is given in class_var_dec: %s" s))
+
+and compile_class_var_dec outfile depth tokens =
+  let (current, rest) = match tokens with
+      [] -> raise ArgumentError
+    | head :: tail -> (head, tail) in
+  write_element_start "classVarDec" outfile depth;
+  write_element "keyword" current outfile (depth + 1); (* ('static'|'field') *)
+  let rest = _compile outfile (depth + 1) rest (* type *)
+    |> _compile outfile (depth + 1) (* varName *)
+    |> compile_class_var_dec_var_name outfile (depth + 1)
+    |> _compile outfile (depth + 1) in (* ';' *)
+  write_element_start "classVarDec" outfile depth;
+  rest
+
 and compile_class_var_dec_or_subroutine_dec outfile depth tokens =
   match List.hd tokens with
     | "}" -> tokens
-    | _ ->
-      _compile outfile depth tokens
+    | "static" | "field" ->
+      compile_class_var_dec outfile depth tokens
         |> compile_class_var_dec_or_subroutine_dec outfile depth
+    | "constructor" | "function" | "method" ->
+      compile_subroutine_dec outfile depth tokens
+        |> compile_class_var_dec_or_subroutine_dec outfile depth
+    | s ->
+      raise (CompileError (Printf.sprintf "Unknown token is given under class: %s" s))
 
 and compile_class outfile depth tokens =
   write_element_start "class" outfile depth;
