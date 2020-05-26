@@ -183,11 +183,20 @@ and compile_expression outfile depth tokens =
   write_element_end "expression" outfile depth;
   rest
 
+and compile_let_statement_index outfile depth tokens =
+  match List.hd tokens with
+    | "=" -> tokens
+    | "[" ->
+      _compile outfile depth tokens (* '[' *)
+        |> compile_expression outfile depth (* expression *)
+        |> _compile outfile depth (* ']' *)
+    | s ->
+      raise (CompileError (Printf.sprintf "Unexpected token is given in let statement: %s" s))
 and compile_let_statement outfile depth tokens =
   write_element_start "letStatement" outfile depth;
   write_element "keyword" "let" outfile (depth + 1); (* 'let' *)
   let rest = _compile outfile (depth + 1) (List.tl tokens) (* varName *)
-  (* TODO [expression] *)
+    |> compile_let_statement_index outfile (depth + 1)
     |> _compile outfile (depth + 1) (* '=' *)
     |> compile_expression outfile (depth + 1) (* expression *)
     |> _compile outfile (depth + 1) in (* ';' *)
@@ -265,6 +274,14 @@ and compile_keyword outfile depth tokens =
       compile_var_dec outfile depth tokens
     | "let" ->
       compile_let_statement outfile depth tokens
+    (* | "while" ->
+      compile_while_statement outfile depth tokens *)
+    (* | "do" ->
+      compile_do_statement outfile depth tokens
+    | "return" ->
+      compile_return_statement outfile depth tokens
+    | "if" ->
+      compile_if_statement outfile depth tokens *)
     | _ ->
       raise (CompileError (Printf.sprintf "This token is unrecognized: %s" (List.hd tokens)))
 
