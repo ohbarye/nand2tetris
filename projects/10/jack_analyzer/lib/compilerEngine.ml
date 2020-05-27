@@ -397,4 +397,5 @@ let compile filepath =
   let tokens = JackTokenizer.create filepath in
   let outfile = (Batteries.String.rsplit filepath ~by: "." |> fst) ^ ".impl.xml" |> open_out in
   _compile outfile 0 tokens
-    |> check_rest
+    |> check_rest;
+  close_out outfile
