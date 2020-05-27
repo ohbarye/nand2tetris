@@ -135,8 +135,8 @@ and _compile_expression_list outfile depth tokens =
       compile_expression outfile depth tokens
         |> _compile_expression_list outfile depth
     | _ :: "," :: _ ->
-      _compile outfile depth tokens (* ',' *)
-        |> compile_expression outfile depth
+      compile_expression outfile depth tokens
+        |> _compile outfile depth (* ',' *)
         |> _compile_expression_list outfile depth
     | ")" :: _ ->
       tokens
