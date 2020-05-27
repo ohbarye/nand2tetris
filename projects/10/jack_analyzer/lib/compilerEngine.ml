@@ -22,7 +22,7 @@ let compile_identifier outfile depth tokens =
 let compile_symbol outfile depth tokens =
   let symbol = match List.hd tokens with
     | "<" -> "&lt;"
-    | ">" -> "&lt;"
+    | ">" -> "&gt;"
     | "&" -> "&amp;"
     | s -> s in
   write_element "symbol" symbol outfile depth;
