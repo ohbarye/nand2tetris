@@ -185,7 +185,7 @@ and _compile_term outfile depth tokens =
             |> _compile outfile depth (* ')' *)
         | "-" | "~" ->
           _compile outfile depth tokens (* unaryOp *)
-            |> _compile_term outfile depth
+            |> compile_term outfile depth
         | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
       )
     | IDENTIFIER ->
