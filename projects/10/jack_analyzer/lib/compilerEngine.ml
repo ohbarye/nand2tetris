@@ -168,7 +168,7 @@ and compile_subroutine_call outfile depth tokens =
       raise (CompileError "Syntax error: subroutine call")
 
 and _compile_term outfile depth tokens =
-  let rest = match JackTokenizer.token_type tokens with
+  match JackTokenizer.token_type tokens with
     | INT_CONST | STRING_CONST ->
       _compile outfile depth tokens
     | KEYWORD ->
@@ -199,8 +199,7 @@ and _compile_term outfile depth tokens =
           compile_subroutine_call outfile depth tokens (* subroutineCall *)
         | _ ->
           _compile outfile depth tokens (* varName *)
-      ) in
-  rest
+      )
  
 and compile_term outfile depth tokens =
   write_element_start "term" outfile depth;
@@ -356,6 +355,10 @@ and compile_var_dec outfile depth tokens =
   write_element_end "varDec" outfile depth;
   rest
 
+and compile_keyword_constant outfile depth tokens =
+  write_element "keyword" (List.hd tokens) outfile depth;
+  List.tl tokens
+
 and compile_type outfile depth tokens =
   write_element "keyword" (List.hd tokens) outfile depth;
   List.tl tokens
@@ -366,6 +369,8 @@ and compile_keyword outfile depth tokens =
       compile_class outfile depth tokens
     | "constructor" | "function" | "method" ->
       compile_subroutine_dec outfile depth tokens
+    | "true" | "false" | "null" | "this" ->
+      compile_keyword_constant outfile depth tokens
     | "void" | "int" | "char" | "boolean" ->
       compile_type outfile depth tokens
     | "var" ->
