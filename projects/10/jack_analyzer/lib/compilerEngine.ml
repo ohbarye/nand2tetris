@@ -281,7 +281,7 @@ and compile_if_statement_else outfile depth tokens =
   match List.hd tokens with
     | "else" ->
       write_element "keyword" "else" outfile depth; (* 'else' *)
-      _compile outfile depth tokens (* '{' *)
+      _compile outfile depth (List.tl tokens) (* '{' *)
       |> compile_statements outfile depth (* statements *)
       |> _compile outfile depth (* '}' *)
     | _ ->
