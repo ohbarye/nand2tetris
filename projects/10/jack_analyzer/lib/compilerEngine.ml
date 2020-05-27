@@ -75,7 +75,7 @@ and compile_class_var_dec outfile depth tokens =
     |> _compile outfile (depth + 1) (* varName *)
     |> compile_class_var_dec_var_name outfile (depth + 1)
     |> _compile outfile (depth + 1) in (* ';' *)
-  write_element_start "classVarDec" outfile depth;
+  write_element_end "classVarDec" outfile depth;
   rest
 
 and compile_class_var_dec_or_subroutine_dec outfile depth tokens =
