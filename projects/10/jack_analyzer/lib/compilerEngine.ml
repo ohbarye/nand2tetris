@@ -163,43 +163,33 @@ and compile_subroutine_call outfile depth tokens =
     | _ ->
       raise (CompileError "Syntax error: subroutine call")
 
- 
 and compile_term outfile depth tokens =
   write_element_start "term" outfile depth;
-  let _compile_term outfile depth tokens =
-    match JackTokenizer.token_type tokens with
-      | INT_CONST | STRING_CONST ->
-        _compile outfile depth tokens
-      | KEYWORD ->
-          (match List.hd tokens with
-            | "null" | "this" | "true" | "false" ->
-              _compile outfile depth tokens
-            | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
-        )
-      | SYMBOL ->
-        (match List.hd tokens with
-          | "(" ->
-            _compile outfile depth tokens (* '(' *)
-              |> compile_expression outfile depth
-              |> _compile outfile depth (* ')' *)
-          | "-" | "~" ->
-            _compile outfile depth tokens (* unaryOp *)
-              |> compile_term outfile depth
-          | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
-        )
-      | IDENTIFIER ->
-        (match tokens with
-          | _ :: "[" :: _ ->
-            _compile outfile depth tokens (* varName *)
-              |> _compile outfile depth (* '[' *)
-              |> compile_expression outfile depth (* expression *)
-              |> _compile outfile depth (* ']' *)
-          | _ :: "(" :: _ | _ :: "." :: _ ->
-            compile_subroutine_call outfile depth tokens (* subroutineCall *)
-          | _ ->
-            _compile outfile depth tokens (* varName *)
-        ) in
-  let rest = _compile_term outfile (depth + 1) tokens in
+  let next_depth = depth + 1 in
+  let rest = 
+    match ((JackTokenizer.token_type tokens), tokens) with
+      | (INT_CONST, _) | (STRING_CONST, _) ->
+        _compile outfile next_depth tokens
+      | (KEYWORD, "null" :: _) | (KEYWORD, "this" :: _) | (KEYWORD, "false" :: _) | (KEYWORD, "true" :: _) ->
+        _compile outfile next_depth tokens
+      | (SYMBOL, "(" :: _) ->
+        _compile outfile next_depth tokens (* '(' *)
+          |> compile_expression outfile next_depth
+          |> _compile outfile next_depth (* ')' *)
+      | (SYMBOL, "-" :: _) | (SYMBOL, "~" :: _) ->
+        _compile outfile next_depth tokens (* unaryOp *)
+          |> compile_term outfile next_depth
+      | (IDENTIFIER, _ :: "[" :: _) ->
+        _compile outfile next_depth tokens (* varName *)
+          |> _compile outfile next_depth (* '[' *)
+          |> compile_expression outfile next_depth (* expression *)
+          |> _compile outfile next_depth (* ']' *)
+      | (IDENTIFIER, _ :: "(" :: _) | (IDENTIFIER, _ :: "." :: _) ->
+            compile_subroutine_call outfile next_depth tokens (* subroutineCall *)
+      | (IDENTIFIER, _) ->
+            _compile outfile next_depth tokens (* varName *)
+      | (_, _) -> raise (CompileError "Unexpected pattern is given in term")
+        in
   write_element_end "term" outfile depth;
   rest
 
