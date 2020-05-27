@@ -131,12 +131,9 @@ and compile_subroutine_body_var_dec outfile depth tokens =
 
 and _compile_expression_list outfile depth tokens =
   match tokens with
-    | _ :: ")" :: _ ->
-      compile_expression outfile depth tokens
-        |> _compile_expression_list outfile depth
-    | _ :: "," :: _ ->
-      compile_expression outfile depth tokens
-        |> _compile outfile depth (* ',' *)
+    | "," :: _ ->
+        _compile outfile depth tokens (* ',' *)
+        |> compile_expression outfile depth
         |> _compile_expression_list outfile depth
     | ")" :: _ ->
       tokens
