@@ -70,11 +70,12 @@ and compile_class_var_dec outfile depth tokens =
       [] -> raise ArgumentError
     | head :: tail -> (head, tail) in
   write_element_start "classVarDec" outfile depth;
-  write_element "keyword" current outfile (depth + 1); (* ('static'|'field') *)
-  let rest = _compile outfile (depth + 1) rest (* type *)
-    |> _compile outfile (depth + 1) (* varName *)
-    |> compile_class_var_dec_var_name outfile (depth + 1)
-    |> _compile outfile (depth + 1) in (* ';' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" current outfile next_depth; (* ('static'|'field') *)
+  let rest = _compile outfile next_depth rest (* type *)
+    |> _compile outfile next_depth (* varName *)
+    |> compile_class_var_dec_var_name outfile next_depth
+    |> _compile outfile next_depth in (* ';' *)
   write_element_end "classVarDec" outfile depth;
   rest
 
@@ -92,32 +93,31 @@ and compile_class_var_dec_or_subroutine_dec outfile depth tokens =
 
 and compile_class outfile depth tokens =
   write_element_start "class" outfile depth;
-  write_element "keyword" "class" outfile (depth + 1); (* 'class' *)
-
+  let next_depth = depth + 1 in
+  write_element "keyword" "class" outfile next_depth; (* 'class' *)
   let rest = List.tl tokens
-    |> _compile outfile (depth + 1) (* className *)
-    |> _compile outfile (depth + 1) (* '{' *)
-    |> compile_class_var_dec_or_subroutine_dec outfile (depth + 1)
-    |> _compile outfile (depth + 1) in (* '}' *)
+    |> _compile outfile next_depth (* className *)
+    |> _compile outfile next_depth (* '{' *)
+    |> compile_class_var_dec_or_subroutine_dec outfile next_depth
+    |> _compile outfile next_depth in (* '}' *)
   write_element_end "class" outfile depth;
   rest
 
-and _compile_parameter_list outfile depth tokens =
-  match tokens with
-    | _ :: _ :: ")" :: _ ->
-      _compile outfile depth tokens (* type *)
-        |> _compile outfile depth (* varName *)
-        |> _compile_parameter_list outfile depth
-    | _ :: _ :: "," :: _ ->
-      _compile outfile depth tokens (* ',' *)
-        |> _compile outfile depth (* type *)
-        |> _compile outfile depth (* varName *)
-        |> _compile_parameter_list outfile depth
-    | _ ->
-      tokens
-
 and compile_parameter_list outfile depth tokens =
   write_element_start "parameterList" outfile depth;
+  let rec _compile_parameter_list outfile depth tokens =
+    match tokens with
+      | _ :: _ :: ")" :: _ ->
+        _compile outfile depth tokens (* type *)
+          |> _compile outfile depth (* varName *)
+          |> _compile_parameter_list outfile depth
+      | _ :: _ :: "," :: _ ->
+        _compile outfile depth tokens (* ',' *)
+          |> _compile outfile depth (* type *)
+          |> _compile outfile depth (* varName *)
+          |> _compile_parameter_list outfile depth
+      | _ ->
+        tokens in
   let rest = _compile_parameter_list outfile (depth + 1) tokens in
   write_element_end "parameterList" outfile depth;
   rest
@@ -129,20 +129,19 @@ and compile_subroutine_body_var_dec outfile depth tokens =
         |> compile_subroutine_body_var_dec outfile depth
     | _ -> tokens
 
-and _compile_expression_list outfile depth tokens =
-  match tokens with
-    | "," :: _ ->
-        _compile outfile depth tokens (* ',' *)
-        |> compile_expression outfile depth
-        |> _compile_expression_list outfile depth
-    | ")" :: _ ->
-      tokens
-    | _ ->
-      compile_expression outfile depth tokens
-        |> _compile_expression_list outfile depth
-
 and compile_expression_list outfile depth tokens =
   write_element_start "expressionList" outfile depth;
+  let rec _compile_expression_list outfile depth tokens =
+    match tokens with
+      | "," :: _ ->
+          _compile outfile depth tokens (* ',' *)
+          |> compile_expression outfile depth
+          |> _compile_expression_list outfile depth
+      | ")" :: _ ->
+        tokens
+      | _ ->
+        compile_expression outfile depth tokens
+          |> _compile_expression_list outfile depth in
   let rest = _compile_expression_list outfile (depth + 1) tokens in
   write_element_end "expressionList" outfile depth;
   rest
@@ -164,58 +163,58 @@ and compile_subroutine_call outfile depth tokens =
     | _ ->
       raise (CompileError "Syntax error: subroutine call")
 
-and _compile_term outfile depth tokens =
-  match JackTokenizer.token_type tokens with
-    | INT_CONST | STRING_CONST ->
-      _compile outfile depth tokens
-    | KEYWORD ->
-        (match List.hd tokens with
-          | "null" | "this" | "true" | "false" ->
-            _compile outfile depth tokens
-          | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
-       )
-    | SYMBOL ->
-      (match List.hd tokens with
-        | "(" ->
-          _compile outfile depth tokens (* '(' *)
-            |> compile_expression outfile depth
-            |> _compile outfile depth (* ')' *)
-        | "-" | "~" ->
-          _compile outfile depth tokens (* unaryOp *)
-            |> compile_term outfile depth
-        | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
-      )
-    | IDENTIFIER ->
-      (match tokens with
-        | _ :: "[" :: _ ->
-          _compile outfile depth tokens (* varName *)
-            |> _compile outfile depth (* '[' *)
-            |> compile_expression outfile depth (* expression *)
-            |> _compile outfile depth (* ']' *)
-        | _ :: "(" :: _ | _ :: "." :: _ ->
-          compile_subroutine_call outfile depth tokens (* subroutineCall *)
-        | _ ->
-          _compile outfile depth tokens (* varName *)
-      )
  
 and compile_term outfile depth tokens =
   write_element_start "term" outfile depth;
+  let _compile_term outfile depth tokens =
+    match JackTokenizer.token_type tokens with
+      | INT_CONST | STRING_CONST ->
+        _compile outfile depth tokens
+      | KEYWORD ->
+          (match List.hd tokens with
+            | "null" | "this" | "true" | "false" ->
+              _compile outfile depth tokens
+            | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
+        )
+      | SYMBOL ->
+        (match List.hd tokens with
+          | "(" ->
+            _compile outfile depth tokens (* '(' *)
+              |> compile_expression outfile depth
+              |> _compile outfile depth (* ')' *)
+          | "-" | "~" ->
+            _compile outfile depth tokens (* unaryOp *)
+              |> compile_term outfile depth
+          | s -> raise (CompileError (Printf.sprintf "Unknown token is given: %s" s))
+        )
+      | IDENTIFIER ->
+        (match tokens with
+          | _ :: "[" :: _ ->
+            _compile outfile depth tokens (* varName *)
+              |> _compile outfile depth (* '[' *)
+              |> compile_expression outfile depth (* expression *)
+              |> _compile outfile depth (* ']' *)
+          | _ :: "(" :: _ | _ :: "." :: _ ->
+            compile_subroutine_call outfile depth tokens (* subroutineCall *)
+          | _ ->
+            _compile outfile depth tokens (* varName *)
+        ) in
   let rest = _compile_term outfile (depth + 1) tokens in
   write_element_end "term" outfile depth;
   rest
 
-and _compile_expression outfile depth tokens =
-  match List.hd tokens with
-    | "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=" ->
-      _compile outfile depth tokens
-        |> compile_term outfile depth
-        |> _compile_expression outfile depth
-    | _ -> tokens
-
 and compile_expression outfile depth tokens =
   write_element_start "expression" outfile depth;
-  let rest = compile_term outfile (depth + 1) tokens
-    |> _compile_expression outfile (depth + 1) in
+  let next_depth = depth + 1 in
+  let rec _compile_expression outfile depth tokens =
+    match List.hd tokens with
+      | "+" | "-" | "*" | "/" | "&" | "|" | "<" | ">" | "=" ->
+        _compile outfile depth tokens
+          |> compile_term outfile depth
+          |> _compile_expression outfile depth
+      | _ -> tokens in
+  let rest = compile_term outfile next_depth tokens
+    |> _compile_expression outfile next_depth in
   write_element_end "expression" outfile depth;
   rest
 
@@ -231,46 +230,49 @@ and compile_let_statement_index outfile depth tokens =
 
 and compile_let_statement outfile depth tokens =
   write_element_start "letStatement" outfile depth;
-  write_element "keyword" "let" outfile (depth + 1); (* 'let' *)
-  let rest = _compile outfile (depth + 1) (List.tl tokens) (* varName *)
-    |> compile_let_statement_index outfile (depth + 1)
-    |> _compile outfile (depth + 1) (* '=' *)
-    |> compile_expression outfile (depth + 1) (* expression *)
-    |> _compile outfile (depth + 1) in (* ';' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" "let" outfile next_depth; (* 'let' *)
+  let rest = _compile outfile next_depth (List.tl tokens) (* varName *)
+    |> compile_let_statement_index outfile next_depth
+    |> _compile outfile next_depth (* '=' *)
+    |> compile_expression outfile next_depth (* expression *)
+    |> _compile outfile next_depth in (* ';' *)
   write_element_end "letStatement" outfile depth;
   rest
 
 and compile_while_statement outfile depth tokens =
   write_element_start "whileStatement" outfile depth;
-  write_element "keyword" "while" outfile (depth + 1); (* 'while' *)
-  let rest = _compile outfile (depth + 1) (List.tl tokens) (* '(' *)
-    |> compile_expression outfile (depth + 1) (* expression *)
-    |> _compile outfile (depth + 1) (* ')' *)
-    |> _compile outfile (depth + 1) (* '{' *)
-    |> compile_statements outfile (depth + 1) (* statements *)
-    |> _compile outfile (depth + 1) in (* '}' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" "while" outfile next_depth; (* 'while' *)
+  let rest = _compile outfile next_depth (List.tl tokens) (* '(' *)
+    |> compile_expression outfile next_depth (* expression *)
+    |> _compile outfile next_depth (* ')' *)
+    |> _compile outfile next_depth (* '{' *)
+    |> compile_statements outfile next_depth (* statements *)
+    |> _compile outfile next_depth in (* '}' *)
   write_element_end "whileStatement" outfile depth;
   rest
 
-and _compile_return_statement outfile depth tokens =
-  match List.hd tokens with
-    | ";" -> tokens
-    | _ ->
-      compile_expression outfile depth tokens
-
 and compile_return_statement outfile depth tokens =
   write_element_start "returnStatement" outfile depth;
-  write_element "keyword" "return" outfile (depth + 1); (* 'return' *)
-  let rest = _compile_return_statement outfile (depth + 1) (List.tl tokens)
-    |> _compile outfile (depth + 1) in (* ';' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" "return" outfile next_depth; (* 'return' *)
+  let _compile_return_statement outfile depth tokens =
+    match List.hd tokens with
+      | ";" -> tokens
+      | _ ->
+        compile_expression outfile depth tokens in
+  let rest = _compile_return_statement outfile next_depth (List.tl tokens)
+    |> _compile outfile next_depth in (* ';' *)
   write_element_end "returnStatement" outfile depth;
   rest
 
 and compile_do_statement outfile depth tokens =
   write_element_start "doStatement" outfile depth;
-  write_element "keyword" "do" outfile (depth + 1); (* 'do' *)
-  let rest = compile_subroutine_call outfile (depth + 1) (List.tl tokens) (* subroutineCall *)
-    |> _compile outfile (depth + 1) in (* ';' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" "do" outfile next_depth; (* 'do' *)
+  let rest = compile_subroutine_call outfile next_depth (List.tl tokens) (* subroutineCall *)
+    |> _compile outfile next_depth in (* ';' *)
   write_element_end "doStatement" outfile depth;
   rest
 
@@ -286,14 +288,15 @@ and compile_if_statement_else outfile depth tokens =
 
 and compile_if_statement outfile depth tokens =
   write_element_start "ifStatement" outfile depth;
-  write_element "keyword" "if" outfile (depth + 1); (* 'if' *)
-  let rest = _compile outfile (depth + 1) (List.tl tokens) (* '(' *)
-    |> compile_expression outfile (depth + 1) (* expression *)
-    |> _compile outfile (depth + 1) (* ')' *)
-    |> _compile outfile (depth + 1) (* '{' *)
-    |> compile_statements outfile (depth + 1) (* statements *)
-    |> _compile outfile (depth + 1) (* '}' *)
-    |> compile_if_statement_else outfile (depth + 1) in
+  let next_depth = depth + 1 in
+  write_element "keyword" "if" outfile next_depth; (* 'if' *)
+  let rest = _compile outfile next_depth (List.tl tokens) (* '(' *)
+    |> compile_expression outfile next_depth (* expression *)
+    |> _compile outfile next_depth (* ')' *)
+    |> _compile outfile next_depth (* '{' *)
+    |> compile_statements outfile next_depth (* statements *)
+    |> _compile outfile next_depth (* '}' *)
+    |> compile_if_statement_else outfile next_depth in
   write_element_end "ifStatement" outfile depth;
   rest
 
@@ -312,10 +315,11 @@ and compile_statements outfile depth tokens =
 
 and compile_subroutine_body outfile depth tokens =
   write_element_start "subroutineBody" outfile depth;
-  let rest = _compile outfile (depth + 1) tokens (* '{' *)
-    |> compile_subroutine_body_var_dec outfile (depth + 1) (* varDec *)
-    |> compile_statements outfile (depth + 1) (* statements* *)
-    |> _compile outfile (depth + 1) in (* '}' *)
+  let next_depth = depth + 1 in
+  let rest = _compile outfile next_depth tokens (* '{' *)
+    |> compile_subroutine_body_var_dec outfile next_depth (* varDec *)
+    |> compile_statements outfile next_depth (* statements* *)
+    |> _compile outfile next_depth in (* '}' *)
   write_element_end "subroutineBody" outfile depth;
   rest
 
@@ -324,13 +328,14 @@ and compile_subroutine_dec outfile depth tokens =
       [] -> raise ArgumentError
     | head :: tail -> (head, tail) in
   write_element_start "subroutineDec" outfile depth;
-  write_element "keyword" current outfile (depth + 1); (* ('constructor'|'function'|'method') *)
-  let rest = _compile outfile (depth + 1) rest (* ('void'|type) *)
-    |> _compile outfile (depth + 1) (* subroutineName *)
-    |> _compile outfile (depth + 1) (* '(' *)
-    |> compile_parameter_list outfile (depth + 1) (* parameterList *)
-    |> _compile outfile (depth + 1) (* ')' *)
-    |> compile_subroutine_body outfile (depth + 1) in (* subroutineBody *)
+  let next_depth = depth + 1 in
+  write_element "keyword" current outfile next_depth; (* ('constructor'|'function'|'method') *)
+  let rest = _compile outfile next_depth rest (* ('void'|type) *)
+    |> _compile outfile next_depth (* subroutineName *)
+    |> _compile outfile next_depth (* '(' *)
+    |> compile_parameter_list outfile next_depth (* parameterList *)
+    |> _compile outfile next_depth (* ')' *)
+    |> compile_subroutine_body outfile next_depth in (* subroutineBody *)
   write_element_end "subroutineDec" outfile depth;
   rest
 
@@ -343,12 +348,13 @@ and compile_var_dec_repeat outfile depth tokens =
 
 and compile_var_dec outfile depth tokens =
   write_element_start "varDec" outfile depth;
-  write_element "keyword" "var" outfile (depth + 1); (* 'var' *)
+  let next_depth = depth + 1 in
+  write_element "keyword" "var" outfile next_depth; (* 'var' *)
   let rest = List.tl tokens
-    |> _compile outfile (depth + 1) (* type *)
-    |> _compile outfile (depth + 1) (* varName *)
-    |> compile_var_dec_repeat outfile (depth + 1)
-    |> _compile outfile (depth + 1) in (* ';' *)
+    |> _compile outfile next_depth (* type *)
+    |> _compile outfile next_depth (* varName *)
+    |> compile_var_dec_repeat outfile next_depth
+    |> _compile outfile next_depth in (* ';' *)
   write_element_end "varDec" outfile depth;
   rest
 
