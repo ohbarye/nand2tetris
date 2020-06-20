@@ -1,0 +1,111 @@
+KEYWORD = 'KEYWORD'.freeze
+SYMBOL = 'SYMBOL'.freeze
+INT_CONST = 'INT_CONST'.freeze
+STRING_CONST = 'STRING_CONST'.freeze
+IDENTIFIER = 'IDENTIFIER'.freeze
+
+TOKEN_TYPE = {
+  KEYWORD: KEYWORD,
+  SYMBOL: SYMBOL,
+  INT_CONST: INT_CONST,
+  STRING_CONST: STRING_CONST,
+  IDENTIFIER: IDENTIFIER,
+}
+
+LET = 'let'.freeze
+CLASS = 'class'.freeze
+CONSTRUCTOR = 'constructor'.freeze
+FUNCTION = 'function'.freeze
+METHOD = 'method'.freeze
+FIELD = 'field'.freeze
+STATIC = 'static'.freeze
+VAR = 'var'.freeze
+INT = 'int'.freeze
+CHAR = 'char'.freeze
+BOOLEAN = 'boolean'.freeze
+VOID = 'void'.freeze
+BOOLEAN_TRUE = 'true'.freeze
+BOOLEAN_FALSE = 'false'.freeze
+NULL = 'null'.freeze
+THIS = 'this'.freeze
+DO = 'do'.freeze
+IF = 'if'.freeze
+ELSE = 'else'.freeze
+WHILE = 'while'.freeze
+RETURN = 'return'.freeze
+
+KEYWORDS = {
+  CLASS: CLASS,
+  CONSTRUCTOR: CONSTRUCTOR,
+  FUNCTION: FUNCTION,
+  METHOD: METHOD,
+  FIELD: FIELD,
+  STATIC: STATIC,
+  VAR: VAR,
+  INT: INT,
+  CHAR: CHAR,
+  BOOLEAN: BOOLEAN,
+  VOID: VOID,
+  TRUE: BOOLEAN_TRUE,
+  FALSE: BOOLEAN_FALSE,
+  NULL: NULL,
+  THIS: THIS,
+  LET: LET,
+  DO: DO,
+  IF: IF,
+  ELSE: ELSE,
+  WHILE: WHILE,
+  RETURN: RETURN,
+}
+
+LEFT_CURLY_BRACKET = '{'.freeze
+RIGHT_CURLY_BRACKET = '}'.freeze
+LEFT_ROUND_BRACKET = '('.freeze
+RIGHT_ROUND_BRACKET = ')'.freeze
+LEFT_SQUARE_BRACKET = '['.freeze
+RIGHT_SQUARE_BRACKET = ']'.freeze
+PERIOD = '.'.freeze
+COMMA = ','.freeze
+SEMI_COLON = ';'.freeze
+PLUS_SIGN = '+'.freeze
+HYPHEN = '-'.freeze
+ASTERISK = '*'.freeze
+SLASH = '/'.freeze
+AMPERSAND = '&'.freeze
+VERTICAL_LINE = '|'.freeze
+LESS_THAN_SIGN = '<'.freeze
+GREATER_THAN_SIGN = '>'.freeze
+EQUAL = '='.freeze
+TILDE = '~'.freeze
+
+SYMBOLS = {
+  LEFT_CURLY_BRACKET: LEFT_CURLY_BRACKET,
+  RIGHT_CURLY_BRACKET: RIGHT_CURLY_BRACKET,
+  LEFT_ROUND_BRACKET: LEFT_ROUND_BRACKET,
+  RIGHT_ROUND_BRACKET: RIGHT_ROUND_BRACKET,
+  LEFT_SQUARE_BRACKET: LEFT_SQUARE_BRACKET,
+  RIGHT_SQUARE_BRACKET: RIGHT_SQUARE_BRACKET,
+  PERIOD: PERIOD,
+  COMMA: COMMA,
+  SEMI_COLON: SEMI_COLON,
+  PLUS_SIGN: PLUS_SIGN,
+  HYPHEN: HYPHEN,
+  ASTERISK: ASTERISK,
+  SLASH: SLASH,
+  AMPERSAND: AMPERSAND,
+  VERTICAL_LINE: VERTICAL_LINE,
+  LESS_THAN_SIGN: LESS_THAN_SIGN,
+  GREATER_THAN_SIGN: GREATER_THAN_SIGN,
+  EQUAL: EQUAL,
+  TILDE: TILDE,
+}
+
+CLASS_VAR_DEC_KEYWORDS = KEYWORDS.slice(:STATIC, :FIELD).values
+SUBROUTINE_DEC_KEYWORDS = KEYWORDS.slice(:CONSTRUCTOR, :FUNCTION, :METHOD).values
+STATEMENT_KEYWORDS = KEYWORDS.slice(:LET, :IF, :WHILE, :DO, :RETURN).values
+
+MAX_INT = 32767
+INT_CONST_REGEX = /\A[0-9]+\z/
+IDENTIFIER_REGEX = /\A[a-zA-Z_][a-zA-Z0-9_]*\z/
+STRING_CONST_REGEX = /\A^\"[^\"\n]*\"\z/
+SYMBOL_REGEX = /[\{\}\(\)\[\]\.,;\+\-\*\/&\|<>=~]/

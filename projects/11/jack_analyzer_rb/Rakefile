@@ -1,0 +1,9 @@
+require 'rspec/core/rake_task'
+
+RSpec::Core::RakeTask.new(:spec)
+
+task :default => :spec
+
+task :compile, [:target] do |task, args|
+  ruby "-W:no-experimental bin/compile.rb #{args[:target]}"
+end
