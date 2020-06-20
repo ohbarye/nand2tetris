@@ -3,9 +3,9 @@ RSpec.describe CompilerEngine do
   describe "#compile" do
     [
       "../ArrayTest/Main.jack",
-      # "../ExpressionLessSquare/Main.jack",
-      # "../ExpressionLessSquare/Square.jack",
-      # "../ExpressionLessSquare/SquareGame.jack",
+      "../ExpressionLessSquare/Main.jack",
+      "../ExpressionLessSquare/Square.jack",
+      "../ExpressionLessSquare/SquareGame.jack",
       # "../Square/Main.jack",
       # "../Square/Square.jack",
       # "../Square/SquareGame.jack",

@@ -22,7 +22,7 @@ class CompilerEngine
       compile_symbol
 
       while CLASS_VAR_DEC_KEYWORDS.include? @tokenizer.current_token
-        # TODO
+        compile_class_var_dec
       end
 
       while SUBROUTINE_DEC_KEYWORDS.include? @tokenizer.current_token
@@ -36,7 +36,11 @@ class CompilerEngine
   def compile_subroutine_dec
     write_element "subroutineDec" do
       compile_keyword # constructor | function | method
-      compile_keyword # void | type
+      if @tokenizer.current_token == VOID
+        compile_keyword # void
+      else
+        compile_type
+      end
       compile_identifier # subroutineName
       compile_symbol # (
       compile_parameter_list
@@ -45,8 +49,32 @@ class CompilerEngine
     end
   end
 
+  def compile_class_var_dec
+    write_element "classVarDec" do
+      compile_keyword # static | field
+      compile_type
+      compile_identifier
+      while @tokenizer.current_token != SEMI_COLON
+        compile_symbol # ,
+        compile_identifier
+      end
+      compile_symbol # ;
+    end
+  end
+
   def compile_parameter_list
     write_element "parameterList" do
+
+    while [INT, CHAR, BOOLEAN].include?(@tokenizer.current_token) || @tokenizer.token_type == IDENTIFIER
+        compile_type
+        compile_identifier
+
+        while @tokenizer.current_token == COMMA
+          compile_symbol # ,
+          compile_type
+          compile_identifier
+        end
+      end
     end
   end
 
@@ -74,7 +102,7 @@ class CompilerEngine
     in LET
       compile_let_statement
     in IF
-      compile_let_statement
+      compile_if_statement
     in WHILE
       compile_while_statement
     in DO
@@ -108,6 +136,25 @@ class CompilerEngine
       compile_symbol # {
       compile_statements
       compile_symbol # }
+    end
+  end
+
+  def compile_if_statement
+    write_element "ifStatement" do
+      compile_keyword # if
+      compile_symbol # (
+      compile_expression
+      compile_symbol # )
+      compile_symbol # {
+      compile_statements
+      compile_symbol # }
+
+      if @tokenizer.current_token == ELSE
+        compile_keyword # else
+        compile_symbol # {
+        compile_statements
+        compile_symbol # }
+      end
     end
   end
 
@@ -184,7 +231,7 @@ class CompilerEngine
         compile_symbol # -|~
         compile_term
       else
-        # TODO raise "Unexpected token is given to compile_term: #{@tokenizer.current_token}"
+        raise "Unexpected token is given to compile_term: #{@tokenizer.current_token}"
       end
     end
   end
