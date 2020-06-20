@@ -1,4 +1,3 @@
-
 RSpec.describe CompilerEngine do
   describe "#compile" do
     [

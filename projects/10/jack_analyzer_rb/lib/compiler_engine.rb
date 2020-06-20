@@ -15,7 +15,7 @@ class CompilerEngine
   private
 
   def compile_class
-    @tokenizer.advance
+    @tokenizer.advance # Consume "class" keyword in advance
     write_element "class" do
       write_element "keyword", value: CLASS
       compile_identifier
