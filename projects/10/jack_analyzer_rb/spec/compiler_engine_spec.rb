@@ -13,7 +13,7 @@ RSpec.describe CompilerEngine do
       it "compiles #{path}" do
         CompilerEngine.new(path).compile
         result = File.open(path.sub(".jack", ".impl.xml")).read
-        expected = File.open(path.sub(".jack", ".xml")).read
+        expected = File.open(path.sub(".jack", ".xml")).read.gsub("\r\n", "\n")
         expect(result).to eq(expected)
       end
     end

@@ -1,4 +1,5 @@
 require_relative "./compiler_engine.rb"
+require_relative "./constants.rb"
 
 class JackAnalyzer
   def initialize(target)

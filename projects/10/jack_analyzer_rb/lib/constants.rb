@@ -1,9 +1,15 @@
+KEYWORD = 'KEYWORD'.freeze
+SYMBOL = 'SYMBOL'.freeze
+INT_CONST = 'INT_CONST'.freeze
+STRING_CONST = 'STRING_CONST'.freeze
+IDENTIFIER = 'IDENTIFIER'.freeze
+
 TOKEN_TYPE = {
-  KEYWORD: 'KEYWORD',
-  SYMBOL: 'SYMBOL',
-  INT_CONST: 'INT_CONST',
-  STRING_CONST: 'STRING_CONST',
-  IDENTIFIER: 'IDENTIFIER',
+  KEYWORD: KEYWORD,
+  SYMBOL: SYMBOL,
+  INT_CONST: INT_CONST,
+  STRING_CONST: STRING_CONST,
+  IDENTIFIER: IDENTIFIER,
 }
 
 LET = 'let'.freeze
@@ -18,11 +24,10 @@ INT = 'int'.freeze
 CHAR = 'char'.freeze
 BOOLEAN = 'boolean'.freeze
 VOID = 'void'.freeze
-TRUE = 'true'.freeze
-FALSE = 'false'.freeze
+BOOLEAN_TRUE = 'true'.freeze
+BOOLEAN_FALSE = 'false'.freeze
 NULL = 'null'.freeze
 THIS = 'this'.freeze
-LET = 'let'.freeze
 DO = 'do'.freeze
 IF = 'if'.freeze
 ELSE = 'else'.freeze
@@ -41,8 +46,8 @@ KEYWORDS = {
   CHAR: CHAR,
   BOOLEAN: BOOLEAN,
   VOID: VOID,
-  TRUE: TRUE,
-  FALSE: FALSE,
+  TRUE: BOOLEAN_TRUE,
+  FALSE: BOOLEAN_FALSE,
   NULL: NULL,
   THIS: THIS,
   LET: LET,
@@ -103,3 +108,4 @@ MAX_INT = 32767
 INT_CONST_REGEX = /\A[0-9]+\z/
 IDENTIFIER_REGEX = /\A[a-zA-Z_][a-zA-Z0-9_]*\z/
 STRING_CONST_REGEX = /\A^\"[^\"\n]*\"\z/
+SYMBOL_REGEX = /[\{\}\(\)\[\]\.,;\+\-\*\/&\|<>=~]/

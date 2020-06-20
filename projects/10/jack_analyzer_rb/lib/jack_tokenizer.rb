@@ -1,5 +1,3 @@
-require_relative "./constants.rb"
-
 class JackTokenizer
   def initialize(path)
     File.open(path, "r") do |file|
@@ -26,21 +24,37 @@ class JackTokenizer
   end
 
   def has_more_tokens?
-    !@tokens.empty?
+    !@current_token.nil? || !@tokens.empty?
   end
 
   def token_type
     case current_token
     in token if KEYWORDS.key(token)
-      TOKEN_TYPE.fetch(:KEYWORD)
+      KEYWORD
     in token if SYMBOLS.key(token)
-      TOKEN_TYPE.fetch(:SYMBOL)
+      SYMBOL
     in INT_CONST_REGEX if Integer(token) <= MAX_INT
-      TOKEN_TYPE.fetch(:INT_CONST)
+      INT_CONST
     in IDENTIFIER_REGEX
-      TOKEN_TYPE.fetch(:IDENTIFIER)
+      IDENTIFIER
     in STRING_CONST_REGEX
-      TOKEN_TYPE.fetch(:STRING_CONST)
+      STRING_CONST
+    end
+  end
+
+  def int_val
+    if token_type == INT_CONST
+      Integer(current_token)
+    else
+      raise "current token is not INT_CONST"
+    end
+  end
+
+  def string_val
+    if token_type == STRING_CONST
+      current_token[1..-2]
+    else
+      raise "current token is not STRING_CONST"
     end
   end
 
@@ -101,8 +115,6 @@ class JackTokenizer
       tokenize_line "", (tokenize_unit unit, tokens)
     end
   end
-
-  SYMBOL_REGEX = /[\{\}\(\)\[\]\.,;\+\-\*\/&\|<>=~]/
 
   def tokenize_unit(unit, tokens)
     case unit
