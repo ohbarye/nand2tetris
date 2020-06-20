@@ -1,9 +1,47 @@
+require_relative "./constants.rb"
+
 class JackTokenizer
   def initialize(path)
     File.open(path, "r") do |file|
       @content = file.read
     end
     @tokens = tokenize
+    advance
+  end
+
+  def current_token
+    @current_token
+  end
+
+  def advance
+    if has_more_tokens?
+      @current_token = @tokens.shift
+    else
+      raise "No more tokens"
+    end
+  end
+
+  def next_token
+    @tokens.first
+  end
+
+  def has_more_tokens?
+    !@tokens.empty?
+  end
+
+  def token_type
+    case current_token
+    in token if KEYWORDS.key(token)
+      TOKEN_TYPE.fetch(:KEYWORD)
+    in token if SYMBOLS.key(token)
+      TOKEN_TYPE.fetch(:SYMBOL)
+    in INT_CONST_REGEX if Integer(token) <= MAX_INT
+      TOKEN_TYPE.fetch(:INT_CONST)
+    in IDENTIFIER_REGEX
+      TOKEN_TYPE.fetch(:IDENTIFIER)
+    in STRING_CONST_REGEX
+      TOKEN_TYPE.fetch(:STRING_CONST)
+    end
   end
 
   def tokenize
