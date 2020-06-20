@@ -1,3 +1,5 @@
+require_relative "./compiler_engine.rb"
+
 class JackAnalyzer
   def initialize(target)
     path = File.expand_path(target)
@@ -13,10 +15,10 @@ class JackAnalyzer
   end
 
   def run
-    @targets.each do |target|
-      puts "Compiling #{target}"
-      #CompilerEngine.compile target
-      puts "Finished compiling #{target}"
+    @targets.each do |path|
+      puts "Compiling #{path}"
+      CompilerEngine.new(path).compile
+      puts "Finished compiling #{path}"
     end
   end
 end
