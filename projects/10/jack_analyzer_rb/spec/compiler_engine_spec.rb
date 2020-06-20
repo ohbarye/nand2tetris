@@ -6,9 +6,9 @@ RSpec.describe CompilerEngine do
       "../ExpressionLessSquare/Main.jack",
       "../ExpressionLessSquare/Square.jack",
       "../ExpressionLessSquare/SquareGame.jack",
-      # "../Square/Main.jack",
-      # "../Square/Square.jack",
-      # "../Square/SquareGame.jack",
+      "../Square/Main.jack",
+      "../Square/Square.jack",
+      "../Square/SquareGame.jack",
     ].each do |path|
       it "compiles #{path}" do
         CompilerEngine.new(path).compile
